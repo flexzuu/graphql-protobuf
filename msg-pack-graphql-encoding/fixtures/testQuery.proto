@@ -1,0 +1,26 @@
+// testQuery.proto
+package graphql;
+
+message Response {
+    required Query_testQuery data = 1;
+}
+
+message Query_testQuery {
+    optional Test_test test = 1;
+    optional Test_x x = 2;
+    optional Test_both both = 3;
+}
+
+message Test_test {
+    optional string string = 1;
+}
+
+message Test_x {
+    optional int32 number = 1;
+}
+
+message Test_both {
+    optional int32 number = 1;
+    optional string string = 2;
+    optional int32 alias = 3;
+}
