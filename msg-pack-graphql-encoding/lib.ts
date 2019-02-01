@@ -1,4 +1,4 @@
-import { Root, Type, Field, Namespace } from 'protobufjs';
+import { Root, Type, Field, Namespace } from 'protobufjs/light';
 import {
   parse,
   TypeInfo,
