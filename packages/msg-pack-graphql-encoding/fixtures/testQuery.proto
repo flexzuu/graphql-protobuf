@@ -5,7 +5,7 @@ message Request {
     required string query = 1;
 }
 
-message Response {
+message Response_testQuery {
     required Query_testQuery data = 1;
 }
 

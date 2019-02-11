@@ -1,10 +1,7 @@
 {
   "name": "graphql-msg-pack",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
   "private": true,
-  "workspace": [
-    "msg-pack-graphql-encoding"
-  ]
+  "devDependencies": {
+    "lerna": "^3.11.0"
+  }
 }
