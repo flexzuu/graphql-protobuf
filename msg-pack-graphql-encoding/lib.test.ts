@@ -1,6 +1,7 @@
 import { test } from './lib';
 import { buildSchema, execute, parse } from 'graphql';
 import { loadSync, Root } from 'protobufjs';
+import { cloneDeepWith } from 'lodash';
 
 const schemaSDL = `
 type Test {
@@ -37,7 +38,7 @@ it('constructs the correct protobuf', () => {
   const actualRoot = new Root();
   const ns = actualRoot.define('graphql');
   test(query, schema, ns);
-  expect(ns.toJSON()).toEqual(root.get('graphql').toJSON());
+  expect(ns.toJSON()).toEqual(root.get('graphql')!.toJSON());
 });
 
 it('serializes the data', () => {
@@ -73,4 +74,67 @@ it('serializes the data', () => {
   expect(response.toJSON().data.both).toEqual(payload.data.both);
   expect(response.toJSON().data.test).toBeUndefined();
   expect(response.toJSON().data.x).toBeUndefined();
+
+  // ... do something with message
+
+  expect(response.toJSON().data.both).toEqual(payload.data.both);
+  expect(response.toJSON().data.test).toBeUndefined();
+  expect(response.toJSON().data.x).toBeUndefined();
+});
+
+it('full round trip', () => {
+  const actualRoot = new Root();
+  const ns = actualRoot.define('graphql');
+  test(query, schema, ns);
+  var ResponseMessage = actualRoot.lookupType('graphql.Response');
+  var RequestMessage = actualRoot.lookupType('graphql.Request');
+  const req = {
+    query,
+  };
+  // Verify the payload if necessary (i.e. when possibly incomplete or invalid)
+  let errMsg = RequestMessage.verify(req);
+  if (errMsg) throw Error(errMsg);
+
+  // Create a new message
+  const reqMsg = RequestMessage.create(req); // or use .fromObject if conversion is necessary
+
+  // Encode a message to an Uint8Array (browser) or Buffer (node)
+  const bufferReq = RequestMessage.encode(reqMsg).finish();
+  // send over the wire
+
+  //gqlServer
+  const reqJSON = RequestMessage.decode(bufferReq).toJSON();
+  const res = cloneDeepWith(
+    execute(schema, parse(reqJSON.query), {
+      test: {
+        string: 'foo',
+        number: 42,
+      },
+    })
+  );
+
+  errMsg = ResponseMessage.verify(res);
+  if (errMsg) throw Error(errMsg);
+
+  const resMsg = ResponseMessage.create(res);
+  const bufferRes = ResponseMessage.encode(resMsg).finish();
+
+  const resJSON = ResponseMessage.decode(bufferRes).toJSON();
+  expect(JSON.stringify(resJSON, null, 2)).toMatchInlineSnapshot(`
+"{
+  \\"data\\": {
+    \\"test\\": {
+      \\"string\\": \\"foo\\"
+    },
+    \\"x\\": {
+      \\"number\\": 42
+    },
+    \\"both\\": {
+      \\"number\\": 42,
+      \\"string\\": \\"foo\\",
+      \\"alias\\": 42
+    }
+  }
+}"
+`);
 });

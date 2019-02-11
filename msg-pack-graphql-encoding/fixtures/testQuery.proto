@@ -1,6 +1,10 @@
 // testQuery.proto
 package graphql;
 
+message Request {
+    required string query = 1;
+}
+
 message Response {
     required Query_testQuery data = 1;
 }

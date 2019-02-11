@@ -1,4 +1,4 @@
-import { Root, Type, Field, Namespace } from 'protobufjs/light';
+import { Type, Field, Namespace } from 'protobufjs/light';
 import {
   parse,
   TypeInfo,
@@ -10,6 +10,7 @@ import {
   ASTKindToNode,
   isScalarType,
 } from 'graphql';
+import { ReadonlyArray } from './ReadOnlyArray';
 
 function getScalarTypeName(name: string) {
   switch (name) {
@@ -22,23 +23,18 @@ function getScalarTypeName(name: string) {
       throw new Error('unsuported type ' + name);
   }
 }
-interface ReadonlyArrayConstructor {
-  new (arrayLength?: number): ReadonlyArray<any>;
-  new <T>(arrayLength: number): ReadonlyArray<T>;
-  new <T>(...items: T[]): ReadonlyArray<T>;
-  (arrayLength?: number): ReadonlyArray<any>;
-  <T>(arrayLength: number): ReadonlyArray<T>;
-  <T>(...items: T[]): ReadonlyArray<T>;
-  isArray(arg: any): arg is ReadonlyArray<any>;
-  readonly prototype: ReadonlyArray<any>;
-}
-const ReadonlyArray = Array as ReadonlyArrayConstructor;
+
 export function test(query: string, schema: GraphQLSchema, ns: Namespace) {
+  //add Request Type
+  const req = new Type('Request');
+  req.add(new Field('query', 1, 'string', 'required'));
+  ns.add(req);
+
   const ast = parse(query);
   const typeInfo = new TypeInfo(schema);
   const visitor: Visitor<ASTKindToNode> = {
     [Kind.OPERATION_DEFINITION]: (node, key, parent, path, ancestors) => {
-      const typeName = `${typeInfo.getType().toString()}_${node.name.value}`;
+      const typeName = `${typeInfo.getType()!.toString()}_${node.name!.value}`;
       let type = ns.get(typeName) as Type;
       if (!type) {
         type = new Type(typeName);
@@ -55,7 +51,7 @@ export function test(query: string, schema: GraphQLSchema, ns: Namespace) {
         throw new Error();
       }
       if (ancestor.kind === Kind.OPERATION_DEFINITION) {
-        parentField = ancestor.name.value;
+        parentField = ancestor.name!.value;
       } else if (ancestor.kind === Kind.FIELD) {
         parentField =
           (ancestor.alias && ancestor.alias.value) || ancestor.name.value;
@@ -68,11 +64,11 @@ export function test(query: string, schema: GraphQLSchema, ns: Namespace) {
       let typeName;
 
       if (isScalarType(typeInfo.getType())) {
-        typeName = getScalarTypeName(typeInfo.getType().toString());
+        typeName = getScalarTypeName(typeInfo.getType()!.toString());
       } else {
-        typeName = `${typeInfo.getType().toString()}_${fieldName}`;
+        typeName = `${typeInfo.getType()!.toString()}_${fieldName}`;
       }
-      const parentTypeName = `${typeInfo.getParentType().name}_${parentField}`;
+      const parentTypeName = `${typeInfo.getParentType()!.name}_${parentField}`;
 
       //add field
       let parentType = ns.get(parentTypeName) as Type;
@@ -110,8 +106,4 @@ export function test(query: string, schema: GraphQLSchema, ns: Namespace) {
     // },
   };
   visit(ast, visitWithTypeInfo(typeInfo, visitor));
-
-  //   const AwesomeMessage = new Type('AwesomeMessage').add(
-  //     new Field('awesomeField', 1, 'string')
-  //   );
 }
