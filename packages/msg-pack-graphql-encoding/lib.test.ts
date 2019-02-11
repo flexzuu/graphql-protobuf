@@ -7,6 +7,7 @@ import {
 import { buildSchema, execute, parse } from 'graphql';
 import { loadSync, Root } from 'protobufjs';
 import { cloneDeepWith } from 'lodash';
+import { writeFileSync } from 'fs';
 
 const schemaSDL = `
 type Test {
@@ -110,6 +111,7 @@ it('full round trip', () => {
 
   // Encode a message to an Uint8Array (browser) or Buffer (node)
   const bufferReq = RequestMessage.encode(reqMsg).finish();
+  writeFileSync('./fixtures/reqbuffer', bufferReq);
   // send over the wire
 
   //gqlServer

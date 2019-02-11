@@ -1,0 +1,16 @@
+
+„
+query testQuery {
+  test {
+    string
+  }
+  x: test {
+    number
+  }
+  both: test {
+    number
+    string
+    alias: number
+  }
+}
+
