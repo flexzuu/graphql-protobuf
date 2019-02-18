@@ -5,7 +5,7 @@ import {
   createRootWithQueries,
 } from './lib';
 import { buildSchema, execute, parse } from 'graphql';
-import { loadSync, Root } from 'protobufjs';
+import { loadSync } from 'protobufjs';
 import { cloneDeepWith } from 'lodash';
 import { writeFileSync } from 'fs';
 
@@ -33,7 +33,6 @@ query testQuery {
     alias: number
   }
 }
-
 `;
 
 const root = loadSync('fixtures/testQuery.proto');

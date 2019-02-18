@@ -9,6 +9,7 @@ import {
   Visitor,
   ASTKindToNode,
   isScalarType,
+  DocumentNode,
 } from 'graphql';
 import { ReadonlyArray } from './ReadOnlyArray';
 
@@ -52,6 +53,14 @@ export function addQueryResMsgToNamespace(
   ns: Namespace
 ) {
   const ast = parse(query);
+  return addDocumentNodeResMsgToNamespace(ast, schema, ns);
+}
+
+export function addDocumentNodeResMsgToNamespace(
+  ast: DocumentNode,
+  schema: GraphQLSchema,
+  ns: Namespace
+) {
   const typeInfo = new TypeInfo(schema);
   const visitor: Visitor<ASTKindToNode> = {
     [Kind.OPERATION_DEFINITION]: (node, key, parent, path, ancestors) => {
