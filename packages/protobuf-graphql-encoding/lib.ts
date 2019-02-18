@@ -11,7 +11,7 @@ import {
   isScalarType,
   DocumentNode,
 } from 'graphql';
-import { ReadonlyArray } from './ReadOnlyArray';
+import { ReadonlyArray } from '../readOnlyArray';
 
 function getScalarTypeName(name: string) {
   switch (name) {

@@ -25,7 +25,7 @@
     "typescript": "^3.3.1"
   },
   "scripts": {
-    "test": "jest",
+    "test": "jest --testPathIgnorePatterns=\"dist\"",
     "example": "tsc && node ./dist/protobuf-graphql-express/exampleServer.js"
   }
 }
