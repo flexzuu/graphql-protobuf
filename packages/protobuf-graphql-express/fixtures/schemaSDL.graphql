@@ -1,8 +1,0 @@
-type Test {
-  string: String
-  number: Int
-}
-
-type Query {
-  test: Test
-}

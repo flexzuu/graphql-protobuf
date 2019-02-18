@@ -1,3 +1,5 @@
+
+ƒ
 query testQuery {
   test {
     string
