@@ -125,17 +125,6 @@ export function addDocumentNodeResMsgToNamespace(
         }
       }
     },
-    // enter(node, key, parent, path, ancestors) {
-    //   console.log({
-    //     node,
-    //     key,
-    //     parent,
-    //     path,
-    //     ancestors,
-    //     type: typeInfo.getType(),
-    //     parentType: typeInfo.getParentType(),
-    //   });
-    // },
   };
   visit(ast, visitWithTypeInfo(typeInfo, visitor));
 }
