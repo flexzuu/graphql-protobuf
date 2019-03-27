@@ -27,7 +27,7 @@ export class Client {
     const { namespace: ns, root: actualRoot } = createRoot();
     addReqMsgToNamespace(ns);
     addDocumentNodeResMsgToNamespace(document, this.schema, ns);
-    var ResponseMessage = actualRoot.lookupType('graphql.Response_testQuery');
+    var ResponseMessage = actualRoot.lookupType('graphql.Response');
     var RequestMessage = actualRoot.lookupType('graphql.Request');
     const req = {
       query: print(document),

@@ -38,7 +38,7 @@ app.all('/', function(req, res, next) {
     );
 
     addQueryResMsgToNamespace(query, schema, ns);
-    var ResponseMessage = root.lookupType('graphql_server.Response_testQuery');
+    var ResponseMessage = root.lookupType('graphql_server.Response');
 
     const errMsg = ResponseMessage.verify(data);
     if (errMsg) throw Error(errMsg);

@@ -77,7 +77,7 @@ export function addDocumentNodeResMsgToNamespace(
   let ancestors: Type[] = [];
   const visitor: Visitor<ASTKindToNode> = {
     [Kind.OPERATION_DEFINITION]: (node) => {
-      const ResponseQueryType = new Type(`Response_${node.name!.value}`).add(
+      const ResponseQueryType = new Type(`Response`).add(
         new Field('data', 1, 'Data')
       );
       ns.add(ResponseQueryType);

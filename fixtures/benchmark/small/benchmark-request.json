@@ -1,0 +1,5 @@
+{
+  "operationName": "PlanLimitsQuery",
+  "variables": { "id": "85512dd925ca486bbef33005b465f4a2" },
+  "query": "query PlanLimitsQuery($id: ID!) {\n  viewer {\n    id\n    project(id: $id) {\n      id\n      quotas {\n        ...ProjectQuotaDetailsFragment\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment ProjectQuotaDetailsFragment on Quota {\n  apiOperations {\n    ...QuotaProgressFragment\n    __typename\n  }\n  assetTraffic {\n    ...QuotaProgressFragment\n    __typename\n  }\n  seats {\n    ...QuotaProgressFragment\n    __typename\n  }\n  records {\n    ...QuotaProgressFragment\n    __typename\n  }\n  locales {\n    ...QuotaProgressFragment\n    __typename\n  }\n  webhooks {\n    ...QuotaProgressFragment\n    __typename\n  }\n  stages {\n    ...QuotaProgressFragment\n    __typename\n  }\n  __typename\n}\n\nfragment QuotaProgressFragment on Progress {\n  current\n  estimate\n  max\n  percent\n  __typename\n}\n"
+}

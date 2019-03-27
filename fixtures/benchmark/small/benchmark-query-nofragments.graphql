@@ -1,0 +1,62 @@
+query smallQuery {
+  viewer {
+    id
+    project {
+      id
+      quotas {
+        apiOperations {
+          current
+          estimate
+          max
+          percent
+          __typename
+        }
+        assetTraffic {
+          current
+          estimate
+          max
+          percent
+          __typename
+        }
+        seats {
+          current
+          estimate
+          max
+          percent
+          __typename
+        }
+        records {
+          current
+          estimate
+          max
+          percent
+          __typename
+        }
+        locales {
+          current
+          estimate
+          max
+          percent
+          __typename
+        }
+        webhooks {
+          current
+          estimate
+          max
+          percent
+          __typename
+        }
+        stages {
+          current
+          estimate
+          max
+          percent
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

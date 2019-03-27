@@ -1,0 +1,54 @@
+query PlanLimitsQuery($id: ID!) {
+  viewer {
+    id
+    project(id: $id) {
+      id
+      quotas {
+        ...ProjectQuotaDetailsFragment
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}
+
+fragment ProjectQuotaDetailsFragment on Quota {
+  apiOperations {
+    ...QuotaProgressFragment
+    __typename
+  }
+  assetTraffic {
+    ...QuotaProgressFragment
+    __typename
+  }
+  seats {
+    ...QuotaProgressFragment
+    __typename
+  }
+  records {
+    ...QuotaProgressFragment
+    __typename
+  }
+  locales {
+    ...QuotaProgressFragment
+    __typename
+  }
+  webhooks {
+    ...QuotaProgressFragment
+    __typename
+  }
+  stages {
+    ...QuotaProgressFragment
+    __typename
+  }
+  __typename
+}
+
+fragment QuotaProgressFragment on Progress {
+  current
+  estimate
+  max
+  percent
+  __typename
+}

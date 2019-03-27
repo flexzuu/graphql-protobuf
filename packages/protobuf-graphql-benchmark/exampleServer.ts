@@ -17,12 +17,21 @@ const schema = buildSchema(
     encoding: 'utf8',
   })
 );
-const query = readFileSync(
-  './fixtures/benchmark/benchmark-query-nofragments.graphql',
+const queryBig = readFileSync(
+  './fixtures/benchmark/big/benchmark-query-nofragments.graphql',
   { encoding: 'utf8' }
 );
-const benchmarkResponse = JSON.parse(
-  readFileSync('./fixtures/benchmark/benchmark-response.json', {
+const benchmarkResponseBig = JSON.parse(
+  readFileSync('./fixtures/benchmark/big/benchmark-response.json', {
+    encoding: 'utf8',
+  })
+);
+const querySmall = readFileSync(
+  './fixtures/benchmark/small/benchmark-query-nofragments.graphql',
+  { encoding: 'utf8' }
+);
+const benchmarkResponseSmall = JSON.parse(
+  readFileSync('./fixtures/benchmark/small/benchmark-response.json', {
     encoding: 'utf8',
   })
 );
@@ -35,14 +44,33 @@ app.use(
     type: 'application/json',
   })
 );
-app.all('/', function(req, res, next) {
+app.all('/:queryName', function(req, res, next) {
+  const queryName = req.params.queryName
+  let query: string
+  let benchmarkResponse: object
+  switch (queryName) {
+    case 'bigQuery':
+      query = queryBig
+      benchmarkResponse = benchmarkResponseBig
+      break;
+  
+    case 'smallQuery':
+      query = querySmall
+      benchmarkResponse = benchmarkResponseSmall
+      break;
+  
+    default:
+    query=""
+    benchmarkResponse = {}
+      break;
+  }
   if (req.headers['content-type'] === 'application/gqlproto') {
     const { namespace: ns, root } = createRoot('graphql_server');
     addReqMsgToNamespace(ns);
     var RequestMessage = root.lookupType('graphql_server.Request');
 
     addQueryResMsgToNamespace(query, schema, ns);
-    var ResponseMessage = root.lookupType('graphql_server.Response_testQuery');
+    var ResponseMessage = root.lookupType(`graphql_server.Response`);
     converter(root,{}, (error:any , data:any) => console.log(data))
 
     const errMsg = ResponseMessage.verify(benchmarkResponse);

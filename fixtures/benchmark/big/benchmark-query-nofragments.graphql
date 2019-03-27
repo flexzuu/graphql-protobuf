@@ -1,4 +1,4 @@
-query testQuery {
+query bigQuery {
   viewer {
     id
     project {

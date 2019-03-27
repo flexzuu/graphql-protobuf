@@ -30,8 +30,10 @@ it("constructs the correct protobuf createRootWithQueries", () => {
   expect(namespace.toJSON()).toEqual(root.get("graphql")!.toJSON());
 });
 
-it("constructs the correct protobuf benchmark example", () => {
-  const q = readFixtureSync("benchmark/benchmark-query-nofragments.graphql");
+it("constructs the correct protobuf benchmark big example", () => {
+  const q = readFixtureSync(
+    "benchmark/big/benchmark-query-nofragments.graphql"
+  );
   const s = buildSchema(readFixtureSync("benchmark/benchmark-schema.graphql"));
 
   const { namespace } = createRootWithQueries([q], s);
@@ -46,7 +48,7 @@ message Request {
     string query = 1;
 }
 
-message Response_testQuery {
+message Response {
 
     Data data = 1;
 
@@ -184,12 +186,131 @@ message Response_testQuery {
 `);
   });
 });
+it("constructs the correct protobuf benchmark small example", () => {
+  const q = readFixtureSync(
+    "benchmark/small/benchmark-query-nofragments.graphql"
+  );
+  const s = buildSchema(readFixtureSync("benchmark/benchmark-schema.graphql"));
+
+  const { namespace } = createRootWithQueries([q], s);
+  let data: string;
+  converter(namespace, {}, (error: any, d: any) => {
+    data = d;
+    expect(data).toMatchInlineSnapshot(`
+"syntax = \\"proto3\\";
+
+message Request {
+
+    string query = 1;
+}
+
+message Response {
+
+    Data data = 1;
+
+    message Data {
+
+        Field_viewer viewer = 1;
+
+        message Field_viewer {
+
+            string id = 1;
+            Field_project project = 2;
+            string __typename = 3;
+
+            message Field_project {
+
+                string id = 1;
+                Field_quotas quotas = 2;
+                string __typename = 3;
+
+                message Field_quotas {
+
+                    Field_apiOperations api_operations = 1;
+                    Field_assetTraffic asset_traffic = 2;
+                    Field_seats seats = 3;
+                    Field_records records = 4;
+                    Field_locales locales = 5;
+                    Field_webhooks webhooks = 6;
+                    Field_stages stages = 7;
+                    string __typename = 8;
+
+                    message Field_apiOperations {
+
+                        float current = 1;
+                        float estimate = 2;
+                        float max = 3;
+                        float percent = 4;
+                        string __typename = 5;
+                    }
+
+                    message Field_assetTraffic {
+
+                        float current = 1;
+                        float estimate = 2;
+                        float max = 3;
+                        float percent = 4;
+                        string __typename = 5;
+                    }
+
+                    message Field_seats {
+
+                        float current = 1;
+                        float estimate = 2;
+                        float max = 3;
+                        float percent = 4;
+                        string __typename = 5;
+                    }
+
+                    message Field_records {
+
+                        float current = 1;
+                        float estimate = 2;
+                        float max = 3;
+                        float percent = 4;
+                        string __typename = 5;
+                    }
+
+                    message Field_locales {
+
+                        float current = 1;
+                        float estimate = 2;
+                        float max = 3;
+                        float percent = 4;
+                        string __typename = 5;
+                    }
+
+                    message Field_webhooks {
+
+                        float current = 1;
+                        float estimate = 2;
+                        float max = 3;
+                        float percent = 4;
+                        string __typename = 5;
+                    }
+
+                    message Field_stages {
+
+                        float current = 1;
+                        float estimate = 2;
+                        float max = 3;
+                        float percent = 4;
+                        string __typename = 5;
+                    }
+                }
+            }
+        }
+    }
+}"
+`);
+  });
+});
 
 it("serializes the data", () => {
   const { namespace: ns, root: actualRoot } = createRoot();
   addReqMsgToNamespace(ns);
   addQueryResMsgToNamespace(query, schema, ns);
-  var ResponseMessage = actualRoot.lookupType("graphql.Response_testQuery");
+  var ResponseMessage = actualRoot.lookupType("graphql.Response");
   const payload = {
     data: {
       both: {
@@ -243,7 +364,7 @@ it("full round trip", () => {
   const { namespace: ns, root: actualRoot } = createRoot();
   addReqMsgToNamespace(ns);
   addQueryResMsgToNamespace(query, schema, ns);
-  var ResponseMessage = actualRoot.lookupType("graphql.Response_testQuery");
+  var ResponseMessage = actualRoot.lookupType("graphql.Response");
   var RequestMessage = actualRoot.lookupType("graphql.Request");
   const req = {
     query
@@ -286,7 +407,7 @@ it("full round trip", () => {
 
   errMsg = ResponseMessage.verify(res);
   if (errMsg) {
-    console.error(res)
+    console.error(res);
     throw Error(errMsg);
   }
 
