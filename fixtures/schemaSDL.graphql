@@ -5,8 +5,12 @@ type TestA {
 type TestB {
   test: TestA!
 }
+type TestC {
+  test: [String!]!
+}
 type Query {
   test: TestA
   testReq: TestA!
   testb: TestB!
+  testc: [TestC]
 }

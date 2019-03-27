@@ -15,6 +15,7 @@ message Response_testQuery {
         Field_both both = 3;
         Field_testReq testReq = 4;
         Field_testb testb = 5;
+        repeated Field_testc testc = 6;
         message Field_test {
             string string = 1;
         }
@@ -38,6 +39,10 @@ message Response_testQuery {
             message Field_test {
                 string string = 1;    
             }
+        }
+
+        message Field_testc {
+            repeated string test = 1;
         }
     }
 }

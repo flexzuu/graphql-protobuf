@@ -21,7 +21,7 @@ const query = readFileSync(
   './fixtures/benchmark/benchmark-query-nofragments.graphql',
   { encoding: 'utf8' }
 );
-const data = JSON.parse(
+const benchmarkResponse = JSON.parse(
   readFileSync('./fixtures/benchmark/benchmark-response.json', {
     encoding: 'utf8',
   })
@@ -39,26 +39,26 @@ app.all('/', function(req, res, next) {
   if (req.headers['content-type'] === 'application/gqlproto') {
     const { namespace: ns, root } = createRoot('graphql_server');
     addReqMsgToNamespace(ns);
-    converter(root,{}, (error:any , data:any) => console.log(data))
     var RequestMessage = root.lookupType('graphql_server.Request');
 
     addQueryResMsgToNamespace(query, schema, ns);
     var ResponseMessage = root.lookupType('graphql_server.Response_testQuery');
+    converter(root,{}, (error:any , data:any) => console.log(data))
 
-    const errMsg = ResponseMessage.verify(data);
+    const errMsg = ResponseMessage.verify(benchmarkResponse);
     if (errMsg) throw Error(errMsg);
 
-    const resMsg = ResponseMessage.create(data);
+    const resMsg = ResponseMessage.create(benchmarkResponse);
     const bufferRes = ResponseMessage.encode(resMsg).finish();
 
     res.type('application/octet-stream');
     res.send(Buffer.from(bufferRes));
   } else if (req.headers['content-type'] === 'application/json') {
     res.type('application/json');
-    res.send(JSON.stringify(data));
+    res.send(JSON.stringify(benchmarkResponse));
   }
   next();
 });
-app.listen('3001', () => {
-  console.log('started example server on port 3001');
+app.listen('3002', () => {
+  console.log('started example server on port 3002');
 });

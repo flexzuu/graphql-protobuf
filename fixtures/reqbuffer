@@ -1,5 +1,5 @@
 
-Èquery testQuery {
+ßquery testQuery {
   test {
     string
   }
@@ -18,5 +18,8 @@
     test {
       string
     }
+  }
+  testc {
+    test
   }
 }

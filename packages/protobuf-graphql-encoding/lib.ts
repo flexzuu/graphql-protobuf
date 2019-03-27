@@ -11,6 +11,9 @@ import {
   isScalarType,
   DocumentNode,
   getNamedType,
+  GraphQLType,
+  isListType,
+  isWrappingType,
 } from 'graphql';
 import { ReadonlyArray } from '../readOnlyArray';
 import { last } from 'lodash';
@@ -23,6 +26,12 @@ function getScalarTypeName(name: string) {
       return 'int32';
     case 'Float':
       return 'float';
+    case "ID": 
+      return "string";
+    case "Boolean": 
+      return "bool";
+    case "DateTime":
+      return "string"
     default:
       throw new Error('unsuported type ' + name);
   }
@@ -65,49 +74,73 @@ export function addDocumentNodeResMsgToNamespace(
   ns: Namespace
 ) {
   const typeInfo = new TypeInfo(schema);
-  let parentTypes: Type[] = [];
+  let ancestors: Type[] = [];
   const visitor: Visitor<ASTKindToNode> = {
-    [Kind.OPERATION_DEFINITION]: (node, key, parent, path, ancestors) => {
+    [Kind.OPERATION_DEFINITION]: (node) => {
       const ResponseQueryType = new Type(`Response_${node.name!.value}`).add(
         new Field('data', 1, 'Data')
       );
       ns.add(ResponseQueryType);
       const DataType = new Type(`Data`);
       ResponseQueryType.add(DataType);
-      parentTypes.push(DataType);
-
+      ancestors.push(DataType);
     },
     [Kind.FIELD]: {
-      enter(node, key, parent, path, ancestors) {
-        const p = last(parentTypes)!;
+      enter(node) {
+        const parent = last(ancestors)!;
           const fieldName = (node.alias && node.alias.value) || node.name.value;
+          const fieldType = typeInfo.getType()
+          if (!fieldType){
+            throw new Error("No field type")
+          }
           let typeName;
-          if (isScalarType(typeInfo.getType())) {
+          if (isNamedScalarType(fieldType)) {
             typeName = getScalarTypeName(
-              getNamedType(typeInfo.getType()!).toString()
+              getNamedType(fieldType).toString()
             );
           } else {
             typeName = `Field_${fieldName}`;
           }
-          p.add(
+          parent.add(
                 new Field(
                   fieldName,
-                  Object.keys(p.fields).length + 1,
-                  typeName
+                  Object.keys(parent.fields).length + 1,
+                  typeName,
+                  isListTypeDeep(fieldType) ? "repeated": undefined,
                 )
               );
-          if (!isScalarType(typeInfo.getType())) {
+          if (!isNamedScalarType(fieldType)) {
               const FieldType = new Type(typeName);
-              p.add(FieldType)
-              parentTypes.push(FieldType)
+              parent.add(FieldType)
+              ancestors.push(FieldType)
             }
       },
-      leave(node, key, parent, path, ancestors) {
-        if (!isScalarType(typeInfo.getType())) {
-          parentTypes.pop()
+      leave(node) {
+        const fieldType = typeInfo.getType()
+        if (!fieldType){
+          throw new Error("No field type")
+        }
+        if (!isNamedScalarType(fieldType)) {
+          ancestors.pop()
         }
       },
     },
   };
   visit(ast, visitWithTypeInfo(typeInfo, visitor));
+}
+
+function isNamedScalarType(t: GraphQLType){
+  return isScalarType(getNamedType(t))
+}
+
+function isListTypeDeep(t: GraphQLType) {
+  /* eslint-enable no-redeclare */
+  if (t) {
+    let unwrappedType = t;
+    while (isWrappingType(unwrappedType) && !isListType(unwrappedType) as boolean) {
+
+      unwrappedType = unwrappedType.ofType;
+    }
+    return isListType(unwrappedType);
+  }
 }
