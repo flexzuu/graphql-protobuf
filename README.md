@@ -16,15 +16,31 @@ It was designed for the following usecase:
 - [ ] GraphQL Interfaces
 - [ ] GraphQL Union Types
 - [ ] GraphQL Fragments
+- [ ] GraphQL Enums
 - [ ] GraphQL Variables
 - [ ] Multiple Queries
 - [ ] Multiple Queries in one document
 
 
-## Benchmark
+## Benchmark Big Query
 ```
-❯ curl -X GET -so /dev/null -w '%{size_download}' \
-    http://localhost:3002/ \
-    -H 'Content-Type: application/json' --compressed
-3278 bytes
+❯ yarn benchmark
+❯ curl -X GET \
+    http://localhost:3002/bigQuery \
+    -H 'Content-Type: application/json' > ./benchmark/big/json
+❯ curl -X GET \
+    http://localhost:3002/bigQuery \
+    -H 'Content-Type: application/gqlproto' > ./benchmark/big/gqlproto
+❯ gzip --keep ./benchmark/big/gqlproto ./benchmark/big/json
+```
+## Benchmark Small Query
+```
+❯ yarn benchmark
+❯ curl -X GET \
+    http://localhost:3002/smallQuery \
+    -H 'Content-Type: application/json' > ./benchmark/small/json
+❯ curl -X GET \
+    http://localhost:3002/smallQuery \
+    -H 'Content-Type: application/gqlproto' > ./benchmark/small/gqlproto
+❯ gzip --keep ./benchmark/small/gqlproto ./benchmark/small/json
 ```
