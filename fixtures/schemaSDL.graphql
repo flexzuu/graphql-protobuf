@@ -1,9 +1,12 @@
-type Test {
+type TestA {
   string: String
   number: Int
 }
-
+type TestB {
+  test: TestA!
+}
 type Query {
-  test: Test
-  testReq: Test!
+  test: TestA
+  testReq: TestA!
+  testb: TestB!
 }

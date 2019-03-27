@@ -13,6 +13,7 @@ import {
   getNamedType,
 } from 'graphql';
 import { ReadonlyArray } from '../readOnlyArray';
+import { last } from 'lodash';
 
 function getScalarTypeName(name: string) {
   switch (name) {
@@ -64,69 +65,48 @@ export function addDocumentNodeResMsgToNamespace(
   ns: Namespace
 ) {
   const typeInfo = new TypeInfo(schema);
+  let parentTypes: Type[] = [];
   const visitor: Visitor<ASTKindToNode> = {
     [Kind.OPERATION_DEFINITION]: (node, key, parent, path, ancestors) => {
-      const typeName = `${getNamedType(typeInfo.getType()!).toString()}_${node.name!.value}`;
-      let type = ns.get(typeName) as Type;
-      if (!type) {
-        type = new Type(typeName);
-        ns.add(type);
-      }
-      ns.add(
-        new Type(`Response_${node.name!.value}`).add(
-          new Field('data', 1, typeName)
-        )
+      const ResponseQueryType = new Type(`Response_${node.name!.value}`).add(
+        new Field('data', 1, 'Data')
       );
+      ns.add(ResponseQueryType);
+      const DataType = new Type(`Data`);
+      ResponseQueryType.add(DataType);
+      parentTypes.push(DataType);
+
     },
-    [Kind.FIELD]: (node, key, parent, path, ancestors) => {
-      let parentField: string;
-      const ancestor = ancestors[ancestors.length - 2]; // skip selectionset
-      if (ReadonlyArray.isArray(ancestor)) {
-        throw new Error();
-      }
-      if (ancestor.kind === Kind.OPERATION_DEFINITION) {
-        parentField = ancestor.name!.value;
-      } else if (ancestor.kind === Kind.FIELD) {
-        parentField =
-          (ancestor.alias && ancestor.alias.value) || ancestor.name.value;
-      } else {
-        console.error("wrong ancestor kind", ancestor);
-        throw new Error();
-      }
-
-      const fieldName = (node.alias && node.alias.value) || node.name.value;
-      let typeName;
-
-      if (isScalarType(typeInfo.getType())) {
-        typeName = getScalarTypeName(getNamedType(typeInfo.getType()!).toString());
-      } else {
-        typeName = `${getNamedType(typeInfo.getType()!).toString()}_${fieldName}`;
-      }
-      const parentTypeName = `${typeInfo.getParentType()!.name}_${parentField}`;
-
-      //add field
-      let parentType = ns.get(parentTypeName) as Type;
-      if (parentType) {
-        parentType.add(
-          new Field(
-            fieldName,
-            Object.keys(parentType.fields).length + 1,
-            typeName
-          )
-        );
-      } else {
-        console.error("did not find parentType", parentTypeName, parentType);
-        console.log(JSON.stringify(ns.toJSON(), null, 2))
-        throw new Error();
-      }
-      //add field return type
-      if (!isScalarType(typeInfo.getType())) {
-        let type = ns.get(typeName) as Type;
-        if (!type) {
-          type = new Type(typeName);
-          ns.add(type);
+    [Kind.FIELD]: {
+      enter(node, key, parent, path, ancestors) {
+        const p = last(parentTypes)!;
+          const fieldName = (node.alias && node.alias.value) || node.name.value;
+          let typeName;
+          if (isScalarType(typeInfo.getType())) {
+            typeName = getScalarTypeName(
+              getNamedType(typeInfo.getType()!).toString()
+            );
+          } else {
+            typeName = `Field_${fieldName}`;
+          }
+          p.add(
+                new Field(
+                  fieldName,
+                  Object.keys(p.fields).length + 1,
+                  typeName
+                )
+              );
+          if (!isScalarType(typeInfo.getType())) {
+              const FieldType = new Type(typeName);
+              p.add(FieldType)
+              parentTypes.push(FieldType)
+            }
+      },
+      leave(node, key, parent, path, ancestors) {
+        if (!isScalarType(typeInfo.getType())) {
+          parentTypes.pop()
         }
-      }
+      },
     },
   };
   visit(ast, visitWithTypeInfo(typeInfo, visitor));

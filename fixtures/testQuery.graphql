@@ -13,4 +13,9 @@ query testQuery {
   testReq {
     string
   }
+  testb {
+    test {
+      string
+    }
+  }
 }
