@@ -1,0 +1,2196 @@
+directive @cacheControl(
+  maxAge: Int
+  scope: CacheControlScope
+) on FIELD_DEFINITION | OBJECT | INTERFACE
+directive @writableStage on FIELD_DEFINITION
+directive @authThirdParty(scopes: [String!]!) on FIELD_DEFINITION
+directive @auth(
+  projectScopes: [ProjectScopeAction!]
+  stageScopes: [StageScopeAction!]
+  modelScopes: [ModelScopeAction!]
+  adminScopes: [AdminScopeAction!]
+) on FIELD_DEFINITION
+directive @limits(checks: [LimitType]) on FIELD_DEFINITION
+directive @deploymentStatus(
+  allowedStatus: [DeploymentStatus]
+) on FIELD_DEFINITION
+input AcceptInviteInput {
+  code: String!
+}
+
+type AcceptInvitePayload {
+  invite: Invite!
+}
+
+input AddPermissionsToRoleInput {
+  roleId: ID!
+  permissions: [ID!]!
+}
+
+enum AdminScopeAction {
+  STAGE_FORCEREDEPLOY
+  PAYMENTACCOUNT_CREATE
+}
+
+# Can be used to use an own s3 bucket for the asset
+input AssetConfiguration {
+  awsAccessKey: String!
+  awsSecretKey: String!
+  s3Region: String!
+  s3BucketName: String!
+}
+
+type AssetField implements IField & IEntity & IRelationField {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+  onDelete: OnDelete!
+  relatedField: IField!
+  contentView: ContentView!
+  relatedModel: AssetModel!
+}
+
+type AssetModel implements IEntity & IModel {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  apiIdPlural: String!
+  primaryField: IField!
+  fields(includeHiddenFields: Boolean = false): [IField!]!
+  stage: IStage!
+  contentViews(includeSystemContentViews: Boolean = false): [ContentView!]!
+}
+
+type BillingPeriod {
+  from: DateTime!
+  to: DateTime!
+}
+
+type BooleanField implements IField & IDefaultValue & IUnique & IEntity {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  isUnique: Boolean!
+  defaultValue: String
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+}
+
+# graphql
+enum CacheControlScope {
+  PUBLIC
+  PRIVATE
+}
+
+input CancelImportContentInput {
+  stageId: ID!
+}
+
+input CloneStageInput {
+  parent: ID!
+  name: String!
+  displayName: String!
+  description: String
+  region: Region
+  customAssetConfiguration: AssetConfiguration
+}
+
+input ClosePaymentAccountInput {
+  id: ID!
+}
+
+type ClosePaymentAccountPayload {
+  paymentAccount: PaymentAccount!
+}
+
+type ColorField implements IField & IDefaultValue & IEntity & IRelationField {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  isUnique: Boolean!
+  defaultValue: String
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  isPrimaryField: Boolean!
+  onDelete: OnDelete!
+  relatedModel: ColorModel!
+  relatedField: IField!
+  contentView: ContentView!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+}
+
+type ColorModel implements IEntity & IModel {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  apiIdPlural: String!
+  primaryField: IField!
+  fields(includeHiddenFields: Boolean = false): [IField!]!
+  stage: IStage!
+  contentViews(includeSystemContentViews: Boolean = false): [ContentView!]!
+}
+
+enum ColumnOrderByDir {
+  ASC
+  DESC
+}
+
+type ContentModel {
+  models(includeSystemModels: Boolean): [IModel!]!
+  model(id: ID!): IModel!
+  enumerations(includeSystemEnumerations: Boolean = false): [Enumeration!]!
+  viewGroups: [ViewGroup!]!
+  localeEnumeration: Enumeration!
+  dataModel(options: DataModelOptions): String!
+  inconsistencies: [String!]!
+}
+
+type ContentView {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String
+  description: String
+  model: IModel!
+  type: ContentViewType!
+  isSystem: Boolean!
+  createdBy: Member
+  orderBy: OrderBy
+  columns: [ContentViewColumn!]!
+  viewGroup: ViewGroup
+  position: Int
+  filters: JSON!
+}
+
+# graphql
+type ContentViewColumn {
+  id: ID!
+  field: IField!
+  isVisible: Boolean!
+  position: Int!
+}
+
+input ContentViewColumnInput {
+  fieldId: ID!
+  isVisible: Boolean!
+}
+
+#    contentViews(includeSystemContentViews: Boolean = false): [ContentView!]! @auth(projectScopes: [CONTENTVIEW_PUBLIC_READ])
+#  }
+
+# graphql
+enum ContentViewType {
+  BUILT_IN
+  PRIVATE
+  PUBLIC
+}
+
+input CreateAssetFieldInput {
+  modelId: ID!
+  apiId: String!
+  displayName: String!
+  description: String
+  isRequired: Boolean!
+  isList: Boolean!
+  isLocalized: Boolean!
+  isHidden: Boolean!
+  formConfig: FieldConfigInput!
+  tableConfig: FieldConfigInput!
+}
+
+type CreateAssetFieldPayload {
+  createdField: AssetField!
+  createdContentViewColumns: [ContentViewColumn!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input CreateBooleanFieldInput {
+  modelId: ID!
+  apiId: String!
+  displayName: String!
+  description: String
+  isRequired: Boolean!
+  isUnique: Boolean!
+  isList: Boolean!
+  isLocalized: Boolean!
+  isHidden: Boolean!
+  defaultValue: String
+  formConfig: FieldConfigInput!
+  tableConfig: FieldConfigInput!
+}
+
+type CreateBooleanFieldPayload {
+  createdField: BooleanField!
+  createdContentViewColumns: [ContentViewColumn!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input CreateContentViewInput {
+  name: String!
+  description: String
+  modelId: ID!
+  isPrivate: Boolean!
+  fields: [ContentViewColumnInput!]!
+  orderBy: OrderByInput
+  viewGroupId: ID
+  filters: JSON!
+}
+
+type CreateContentViewPayload {
+  createdContentView: ContentView!
+}
+
+input CreateDateTimeFieldInput {
+  modelId: ID!
+  apiId: String!
+  displayName: String!
+  description: String
+  isRequired: Boolean!
+  isUnique: Boolean!
+  isList: Boolean!
+  isLocalized: Boolean!
+  isHidden: Boolean!
+  defaultValue: String
+  formConfig: FieldConfigInput!
+  tableConfig: FieldConfigInput!
+}
+
+type CreateDateTimeFieldPayload {
+  createdField: DateTimeField!
+  createdContentViewColumns: [ContentViewColumn!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input CreateEnumerationFieldInput {
+  modelId: ID!
+  enumerationId: ID!
+  apiId: String!
+  displayName: String!
+  description: String
+  isRequired: Boolean!
+  isUnique: Boolean!
+  isList: Boolean!
+  isLocalized: Boolean!
+  isHidden: Boolean!
+  defaultValue: String
+  formConfig: FieldConfigInput!
+  tableConfig: FieldConfigInput!
+}
+
+type CreateEnumerationFieldPayload {
+  createdField: EnumerationField!
+  createdContentViewColumns: [ContentViewColumn!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+# graphql
+input CreateEnumerationInput {
+  stageId: ID!
+  apiId: String!
+  displayName: String!
+  description: String
+  values: [EnumerationValueCreateInput!]!
+}
+
+type CreateEnumerationPayload {
+  createdEnumeration: Enumeration!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input CreateFloatFieldInput {
+  modelId: ID!
+  apiId: String!
+  displayName: String!
+  description: String
+  isRequired: Boolean!
+  isUnique: Boolean!
+  isList: Boolean!
+  isLocalized: Boolean!
+  isHidden: Boolean!
+  defaultValue: String
+  formConfig: FieldConfigInput!
+  tableConfig: FieldConfigInput!
+}
+
+type CreateFloatFieldPayload {
+  createdField: FloatField!
+  createdContentViewColumns: [ContentViewColumn!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input CreateIntFieldInput {
+  modelId: ID!
+  apiId: String!
+  displayName: String!
+  description: String
+  isRequired: Boolean!
+  isUnique: Boolean!
+  isList: Boolean!
+  isLocalized: Boolean!
+  isHidden: Boolean!
+  defaultValue: String
+  formConfig: FieldConfigInput!
+  tableConfig: FieldConfigInput!
+}
+
+type CreateIntFieldPayload {
+  createdField: IntField!
+  createdContentViewColumns: [ContentViewColumn!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input CreateJsonFieldInput {
+  modelId: ID!
+  apiId: String!
+  displayName: String!
+  description: String
+  isRequired: Boolean!
+  isUnique: Boolean!
+  isList: Boolean!
+  isLocalized: Boolean!
+  isHidden: Boolean!
+  defaultValue: String
+  formConfig: FieldConfigInput!
+  tableConfig: FieldConfigInput!
+}
+
+type CreateJsonFieldPayload {
+  createdField: JsonField!
+  createdContentViewColumns: [ContentViewColumn!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input CreateModelInput {
+  stageId: ID!
+  apiId: String!
+  displayName: String!
+  description: String
+}
+
+# graphql
+type CreateModelPayload {
+  createdModel: Model!
+  contentViews(includeSystemContentViews: Boolean = false): [ContentView!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+# graphql
+input CreatePaymentAccountInput {
+  userId: ID!
+  accountName: String
+  description: String
+  isMain: Boolean!
+}
+
+input CreatePermanentAuthTokenInput {
+  stageId: ID!
+  name: String!
+  description: String
+  scope: PermanentAuthTokenScope!
+  filters: EntityFilterWhereInput
+}
+
+input CreateProjectInput {
+  region: Region!
+  name: String!
+  description: String
+  customAssetConfiguration: AssetConfiguration
+  templateOptions: TemplateOptionsInput
+}
+
+input CreateRelationFieldInput {
+  modelId: ID!
+  relationApiId: String
+  apiId: String!
+  displayName: String!
+  description: String
+  isList: Boolean!
+  isRequired: Boolean!
+  isLocalized: Boolean!
+  isHidden: Boolean!
+  onDelete: OnDelete! = SET_NULL
+  reverseSide: ReverseRelationSide!
+  tableConfig: FieldConfigInput!
+  formConfig: FieldConfigInput!
+}
+
+type CreateRelationFieldPayload {
+  createdField: RelationField!
+  createdContentViewColumns: [ContentViewColumn!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input CreateRichTextFieldInput {
+  modelId: ID!
+  apiId: String!
+  displayName: String!
+  description: String
+  isRequired: Boolean!
+  isUnique: Boolean!
+  isList: Boolean!
+  isLocalized: Boolean!
+  isHidden: Boolean!
+  defaultValue: String
+  formConfig: FieldConfigInput!
+  tableConfig: FieldConfigInput!
+}
+
+type CreateRichTextFieldPayload {
+  createdField: RichTextField!
+  createdContentViewColumns: [ContentViewColumn!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+# graphql
+input CreateRoleInput {
+  projectId: ID!
+  name: String!
+  description: String
+}
+
+input CreateStringFieldInput {
+  modelId: ID!
+  apiId: String!
+  displayName: String!
+  description: String
+  isRequired: Boolean!
+  isUnique: Boolean!
+  isList: Boolean!
+  isLocalized: Boolean!
+  isHidden: Boolean!
+  defaultValue: String
+  formConfig: FieldConfigInput!
+  tableConfig: FieldConfigInput!
+}
+
+type CreateStringFieldPayload {
+  createdField: StringField!
+  createdContentViewColumns: [ContentViewColumn!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input CreateSystemTokenInput {
+  stageId: ID!
+  name: String!
+  description: String
+  grants: [SystemTokenGrant!]!
+}
+
+input CreateUserInput {
+  name: String!
+  email: String!
+  auth0Sub: String!
+  picture: String
+}
+
+type CreateUserPayload {
+  createdUserId: String!
+}
+
+input CreateViewGroupInput {
+  name: String!
+  description: String
+  type: ViewGroupContentType
+  stageId: ID!
+  isPrivate: Boolean!
+}
+
+type CreateViewGroupPayload {
+  createdViewGroup: ViewGroup!
+}
+
+# graphql
+input CreateWebhookInput {
+  stageId: ID!
+  name: String!
+  description: String
+  url: String!
+  headers: JSON
+  isActive: Boolean!
+  type: WebhookType!
+}
+
+input DataModelOptions {
+  fromRevision: Int
+  toRevision: Int
+}
+
+scalar DateTime
+
+type DateTimeField implements IField & IDefaultValue & IUnique & IEntity {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  isUnique: Boolean!
+  defaultValue: String
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+}
+
+type DeleteAccountPayload {
+  deletedUserId: ID!
+}
+
+input DeleteContentViewInput {
+  id: ID!
+}
+
+type DeleteContentViewPayload {
+  deletedContentViewId: ID!
+}
+
+input DeleteEnumerationInput {
+  id: ID!
+}
+
+type DeleteEnumerationPayload {
+  deletedEnumerationId: ID!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input DeleteFieldInput {
+  id: ID!
+}
+
+type DeleteFieldPayload {
+  deletedFieldId: ID!
+  deletedContentViewColumnIds: [ID!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input DeleteModelInput {
+  id: ID!
+}
+
+type DeleteModelPayload {
+  deletedModelId: ID!
+  deletedContentViewIds: [ID!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input DeletePermanentAuthTokenInput {
+  id: ID!
+}
+
+type DeletePermanentAuthTokenPayload {
+  deletedTokenId: ID!
+}
+
+input DeleteProjectInput {
+  id: ID!
+}
+
+type DeleteProjectPayload {
+  deletedProjectId: ID!
+}
+
+input DeleteRoleInput {
+  id: ID!
+}
+
+type DeleteRolePayload {
+  deletedId: ID!
+}
+
+input DeleteStageInput {
+  stageId: ID!
+}
+
+type DeleteStagePayload {
+  deletedStageId: ID!
+}
+
+input DeleteSystemTokenInput {
+  id: ID!
+}
+
+type DeleteSystemTokenPayload {
+  deletedTokenId: ID!
+}
+
+input DeleteViewGroupInput {
+  id: ID!
+}
+
+type DeleteViewGroupPayload {
+  deletedViewGroupId: ID!
+}
+
+input DeleteWebhookInput {
+  webhookId: ID
+}
+
+type DeleteWebhookPayload {
+  deletedWebhookId: ID!
+}
+
+enum DeploymentStatus {
+  READY
+  PENDING
+  ACTION_REQUIRED
+  ERROR
+  CONTENT_IMPORT_ERROR
+  CONTENT_IMPORTING
+}
+
+input DeploySchemaInput {
+  stageId: ID!
+  schema: String!
+}
+
+type EntityFilterWhere {
+  AND: [EntityFilterWhere]
+  OR: [EntityFilterWhere]
+  # ID
+  id: String
+  id_not: String
+  id_lt: String
+  id_lte: String
+  id_gt: String
+  id_gte: String
+  id_contains: String
+  id_not_contains: String
+  id_starts_with: String
+  id_not_starts_with: String
+  id_ends_with: String
+  id_not_ends_with: String
+  # createdAt
+  createdAt: DateTime
+  createdAt_not: DateTime
+  createdAt_lt: DateTime
+  createdAt_lte: DateTime
+  createdAt_gt: DateTime
+  createdAt_gte: DateTime
+  # updatedAt
+  updatedAt: DateTime
+  updatedAt_not: DateTime
+  updatedAt_lt: DateTime
+  updatedAt_lte: DateTime
+  updatedAt_gt: DateTime
+  updatedAt_gte: DateTime
+  # status
+  status: Status
+  status_not: Status
+}
+
+input EntityFilterWhereInput {
+  AND: [EntityFilterWhereInput]
+  OR: [EntityFilterWhereInput]
+  # ID
+  id: String
+  id_not: String
+  id_lt: String
+  id_lte: String
+  id_gt: String
+  id_gte: String
+  id_contains: String
+  id_not_contains: String
+  id_starts_with: String
+  id_not_starts_with: String
+  id_ends_with: String
+  id_not_ends_with: String
+  # createdAt
+  createdAt: DateTime
+  createdAt_not: DateTime
+  createdAt_lt: DateTime
+  createdAt_lte: DateTime
+  createdAt_gt: DateTime
+  createdAt_gte: DateTime
+  # updatedAt
+  updatedAt: DateTime
+  updatedAt_not: DateTime
+  updatedAt_lt: DateTime
+  updatedAt_lte: DateTime
+  updatedAt_gt: DateTime
+  updatedAt_gte: DateTime
+  # status
+  status: Status
+  status_not: Status
+}
+
+type Enumeration implements IEntity {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  stage: IStage!
+  # Enumeration values: Starting with uppercase, only alphanumeric chars incl underscores, no whitespaces
+  values: [EnumerationValue!]!
+  isSystem: Boolean!
+}
+
+type EnumerationField implements IField & IDefaultValue & IUnique & IEntity {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  isUnique: Boolean!
+  defaultValue: String
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+  enumeration: Enumeration!
+}
+
+type EnumerationValue {
+  id: ID!
+  apiId: String!
+  displayName: String!
+  isDefault: Boolean!
+  isSystem: Boolean!
+  isReadOnly: Boolean!
+}
+
+input EnumerationValueCreateInput {
+  apiId: String!
+  displayName: String!
+  isDefault: Boolean!
+}
+
+input EnumerationValueUpdateInput {
+  apiId: String!
+  displayName: String!
+  newApiId: String
+  isDefault: Boolean!
+}
+
+# graphql
+type FieldConfig {
+  config: JSON!
+  id: String!
+  renderer: String!
+}
+
+# graphql
+input FieldConfigInput {
+  renderer: String!
+  config: JSON
+}
+
+input FieldConfigUpdateInput {
+  renderer: String
+  config: JSON
+}
+
+input FieldSetPrimaryInput {
+  id: ID!
+}
+
+type FieldSetPrimaryPayload {
+  updatedField: IField!
+}
+
+type FieldVariation {
+  variationEnumerationValue: EnumerationValue!
+  field: IField!
+  parent: IField!
+}
+
+type Filestack implements IAssetConfig {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiKey: String!
+  bucket: String!
+  isManagedBucket: Boolean!
+}
+
+type FloatField implements IField & IDefaultValue & IUnique & IEntity {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  isUnique: Boolean!
+  defaultValue: String
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+}
+
+input ForceStageDeployInput {
+  stageId: ID!
+  force: Boolean!
+  setStageStatusPending: Boolean!
+}
+
+# graphql
+interface IAssetConfig {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiKey: String!
+}
+
+interface IDefaultValue {
+  defaultValue: String
+}
+
+interface IDeploymentStatus {
+  id: ID!
+  startedAt: DateTime!
+  stage: IStage!
+}
+
+type IDField implements IField & IUnique & IEntity {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  isUnique: Boolean!
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+}
+
+interface IEntity {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+}
+
+interface IField {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+}
+
+interface IModel {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  apiIdPlural: String!
+  primaryField: IField!
+  fields(includeHiddenFields: Boolean = false): [IField!]!
+  stage: IStage!
+  contentViews(includeSystemContentViews: Boolean = false): [ContentView!]!
+}
+
+input ImportContentInput {
+  templateId: ID
+  intoStageId: ID!
+}
+
+type IntField implements IField & IDefaultValue & IUnique & IEntity {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  isUnique: Boolean!
+  defaultValue: String
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+}
+
+# graphql
+type Invite {
+  id: ID!
+  createdAt: DateTime!
+  expirationDate: DateTime!
+  email: String!
+  code: String!
+  issuer: Member
+  project: Project!
+  acceptedAt: DateTime
+  role: Role!
+}
+
+interface IPermission {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  description: String!
+}
+
+interface IRelationField {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  position: Int!
+  model: IModel!
+  relatedModel: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+  onDelete: OnDelete!
+  relatedField: IField!
+  contentView: ContentView!
+}
+
+interface IStage {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  displayName: String!
+  description: String
+  revision: Int!
+  endpoint: String!
+  contentModel: ContentModel!
+  contentView(id: ID!): ContentView!
+  contentViews(includeSystemModels: Boolean = false): [ContentView!]!
+  deploymentStatus: IDeploymentStatus!
+  prismaConfig: PrismaConfig!
+  assetConfig: IAssetConfig!
+  parent: IStage
+  metrics: Metrics!
+  webhook(id: ID!): Webhook!
+  webhooks: [Webhook!]!
+  permanentAuthTokens: [PermanentAuthToken!]!
+  systemTokens: [SystemToken!]!
+  defaultPermissions: StageDefaultPermission!
+  authToken: String!
+}
+
+interface IUnique {
+  isUnique: Boolean!
+}
+
+interface IUser {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  profile: Profile!
+}
+
+interface IVariationField {
+  field: IField!
+  variationEnumeration: Enumeration!
+  variations: [FieldVariation!]!
+}
+
+# The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+scalar JSON
+
+# ### prisma supported scalars:
+type JsonField implements IField & IDefaultValue & IUnique & IEntity {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  isUnique: Boolean!
+  defaultValue: String
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+}
+
+input LeaveProjectInput {
+  id: ID!
+}
+
+type LeaveProjectPayload {
+  leftProjectId: ID!
+}
+
+# graphql
+type LegacyProject {
+  id: ID!
+  name: String!
+  description: String
+  picture: String
+  isOwner: Boolean!
+}
+
+type Lifecycle {
+  steps: [LifecycleStep!]
+  progress: Float!
+}
+
+type LifecycleStep {
+  name: String!
+  description: String
+  done: Boolean!
+  type: LifecycleStepType!
+}
+
+enum LifecycleStepType {
+  MODEL_CREATED
+  FIELD_CREATED
+  WEBHOOK_CREATED
+  USER_INVITED
+  CONTENT_ADDED
+  API_PERMISSIONS_SET
+}
+
+type Limit {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  type: LimitType!
+  amount: Float
+  addOnCode: String
+  plan: Plan!
+}
+
+enum LimitType {
+  ROLES
+  LOCALES
+  STAGES
+  WEBHOOKS
+  MODELS
+  RECORDS
+  ASSET_TRAFFIC
+  API_OPERATIONS
+  SEATS
+  WORKFLOW_STEPS
+  INTEGRATIONS
+  VERSIONS
+}
+
+type LocalizedField implements IField & IEntity & IVariationField {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+  field: IField!
+  variationEnumeration: Enumeration!
+  variations: [FieldVariation!]!
+}
+
+# ### own types (underlying a relation):
+type LocationField implements IField & IDefaultValue & IEntity & IRelationField {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  isUnique: Boolean!
+  defaultValue: String
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  onDelete: OnDelete!
+  relatedModel: LocationModel!
+  relatedField: IField!
+  contentView: ContentView!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+}
+
+type LocationModel implements IEntity & IModel {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  apiIdPlural: String!
+  primaryField: IField!
+  fields(includeHiddenFields: Boolean = false): [IField!]!
+  stage: IStage!
+  contentViews(includeSystemContentViews: Boolean = false): [ContentView!]!
+}
+
+# Represents a user in a project
+type Member implements IUser {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  profile: Profile!
+  role: Role!
+}
+
+type MetaInfo {
+  serverVersion: String!
+}
+
+type Metrics {
+  # The number of API operations
+  apiOperations(start: DateTime!, end: DateTime!, resolution: Int!): [Stats!]!
+  # The asset traffic in Byte
+  assetTraffic(start: DateTime!, end: DateTime!): [Stats!]!
+  # The number of used asset transformations
+  assetTransformations(start: DateTime!, end: DateTime!): [Stats!]!
+}
+
+type Model implements IEntity & IModel {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  apiIdPlural: String!
+  primaryField: IField!
+  fields(includeHiddenFields: Boolean = false): [IField!]!
+  stage: IStage!
+  contentViews(includeSystemContentViews: Boolean = false): [ContentView!]!
+}
+
+type ModelPermission implements IPermission {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  description: String!
+  model: IModel
+  action: ModelScopeAction!
+}
+
+enum ModelScopeAction {
+  TBD
+}
+
+input MoveContentViewInput {
+  id: ID!
+  newViewGroupId: ID
+  position: Int
+}
+
+type MoveContentViewPayload {
+  movedContentView: ContentView!
+  updatedViewGroups: [ViewGroup!]!
+}
+
+input MoveFieldInput {
+  id: ID!
+  newPosition: Int!
+}
+
+type MoveFieldPayload {
+  movedFields: [IField!]!
+  contentViewColumns: [ContentViewColumn!]!
+}
+
+input MoveViewGroupInput {
+  id: ID!
+  newPosition: Int!
+}
+
+type MoveViewGroupPayload {
+  movedViewGroups: [ViewGroup!]!
+}
+
+type Mutation {
+  # graphql
+  revertContentModel(data: RevertContentModelInput!): IDeploymentStatus!
+  # graphql
+  createEnumeration(data: CreateEnumerationInput!): CreateEnumerationPayload!
+  deleteEnumeration(data: DeleteEnumerationInput!): DeleteEnumerationPayload!
+  updateEnumeration(data: UpdateEnumerationInput!): UpdateEnumerationPayload!
+  # graphql
+  createStringField(data: CreateStringFieldInput!): CreateStringFieldPayload!
+  createRichTextField(
+    data: CreateRichTextFieldInput!
+  ): CreateRichTextFieldPayload!
+  createDateTimeField(
+    data: CreateDateTimeFieldInput!
+  ): CreateDateTimeFieldPayload!
+  createIntField(data: CreateIntFieldInput!): CreateIntFieldPayload!
+  createFloatField(data: CreateFloatFieldInput!): CreateFloatFieldPayload!
+  createBooleanField(data: CreateBooleanFieldInput!): CreateBooleanFieldPayload!
+  createJsonField(data: CreateJsonFieldInput!): CreateJsonFieldPayload!
+  createEnumerationField(
+    data: CreateEnumerationFieldInput!
+  ): CreateEnumerationFieldPayload!
+  createAssetField(data: CreateAssetFieldInput!): CreateAssetFieldPayload!
+  createRelationField(
+    data: CreateRelationFieldInput!
+  ): CreateRelationFieldPayload!
+  updateField(data: UpdateFieldInput!): UpdateFieldPayload!
+  fieldSetPrimary(data: FieldSetPrimaryInput!): FieldSetPrimaryPayload!
+  moveField(data: MoveFieldInput!): MoveFieldPayload!
+  deleteField(data: DeleteFieldInput!): DeleteFieldPayload!
+  # graphql
+  createModel(data: CreateModelInput!): CreateModelPayload!
+  updateModel(data: UpdateModelInput!): UpdateModelPayload!
+  deleteModel(data: DeleteModelInput!): DeleteModelPayload!
+  # graphql
+  createContentView(data: CreateContentViewInput!): CreateContentViewPayload!
+  updateContentView(data: UpdateContentViewInput!): UpdateContentViewPayload!
+  deleteContentView(data: DeleteContentViewInput!): DeleteContentViewPayload!
+  moveContentView(data: MoveContentViewInput!): MoveContentViewPayload!
+  # graphql
+  sendInvite(data: SendInviteInput!): SendInvitePayload!
+  revokeInvite(data: RevokeInviteInput!): RevokeInvitePayload!
+  acceptInvite(data: AcceptInviteInput!): AcceptInvitePayload!
+  # graphql
+  closePaymentAccount(
+    data: ClosePaymentAccountInput!
+  ): ClosePaymentAccountPayload!
+  reopenPaymentAccount(
+    data: ReopenPaymentAccountInput!
+  ): ReopenPaymentAccountPayload!
+  # graphql
+  switchPaymentSubscription(
+    data: SwitchPaymentSubscriptionInput!
+  ): SwitchPaymentSubscriptionPayload!
+  # graphql
+  createPermanentAuthToken(
+    data: CreatePermanentAuthTokenInput
+  ): PermanentAuthToken!
+  updatePermanentAuthToken(
+    data: UpdatePermanentAuthTokenInput
+  ): PermanentAuthToken!
+  deletePermanentAuthToken(
+    data: DeletePermanentAuthTokenInput
+  ): DeletePermanentAuthTokenPayload!
+  # graphql
+  addPermissionsToRole(data: AddPermissionsToRoleInput!): Role!
+  removePermissionsFromRole(data: RemovePermissionsToRoleInput!): Role!
+  # graphql
+  createProject(data: CreateProjectInput!): Project!
+  updateProject(data: UpdateProjectInput!): Project!
+  deleteProject(data: DeleteProjectInput!): DeleteProjectPayload!
+  leaveProject(data: LeaveProjectInput!): LeaveProjectPayload!
+  # graphql
+  createRole(data: CreateRoleInput!): Role!
+  updateRole(data: UpdateRoleInput!): Role!
+  deleteRole(data: DeleteRoleInput!): DeleteRolePayload!
+  updateUserRole(data: UpdateUserRoleInput!): Member!
+  # graphql
+  forceStageDeploy(data: ForceStageDeployInput!): IStage!
+  cloneStage(data: CloneStageInput!): IStage!
+  syncStage(data: SyncStageInput!): IStage!
+  deleteStage(data: DeleteStageInput!): DeleteStagePayload!
+  updateStageDefaultPermissions(
+    data: UpdateStageDefaultPermissionsInput!
+  ): IStage!
+  rollbackStage(data: RollbackStageInput!): IStage!
+  replayEvents(data: ReplayEventsInput!): IStage!
+  deploySchema(data: DeploySchemaInput!): IStage!
+  importContent(data: ImportContentInput!): IStage!
+  cancelImportContent(data: CancelImportContentInput!): IStage!
+  # graphql
+  createSystemToken(data: CreateSystemTokenInput): SystemToken!
+  updateSystemToken(data: UpdateSystemTokenInput): SystemToken!
+  deleteSystemToken(data: DeleteSystemTokenInput): DeleteSystemTokenPayload!
+  # graphql
+  createViewGroup(data: CreateViewGroupInput!): CreateViewGroupPayload!
+  updateViewGroup(data: UpdateViewGroupInput!): UpdateViewGroupPayload!
+  deleteViewGroup(data: DeleteViewGroupInput!): DeleteViewGroupPayload!
+  moveViewGroup(data: MoveViewGroupInput!): MoveViewGroupPayload!
+  # graphql
+  createWebhook(data: CreateWebhookInput!): Webhook!
+  updateWebhook(data: UpdateWebhookInput!): Webhook!
+  deleteWebhook(data: DeleteWebhookInput!): DeleteWebhookPayload!
+  removeMember(data: RemoveMemberInput!): RemoveMemberPayload!
+  setReferral(referral: String!): SetReferralPayload!
+  deleteAccount: DeleteAccountPayload!
+  updateProfile(data: UpdateProfileInput!): Viewer!
+  createUser(data: CreateUserInput!): CreateUserPayload!
+}
+
+enum OnDelete {
+  CASCADE
+  NO_ACTION
+  SET_NULL
+}
+
+type OrderBy {
+  orderByField: IField!
+  orderDir: ColumnOrderByDir!
+}
+
+input OrderByInput {
+  orderByField: ID!
+  orderDir: ColumnOrderByDir!
+}
+
+type PaymentAccount {
+  id: ID!
+  accountName: String
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  isClosed: Boolean!
+  isMain: Boolean!
+  hostedPageUrl(planName: String!, projectId: ID!): String
+  hostedBillingUrl: String!
+  accountManagementUrl: String!
+  user: IUser!
+  paymentSubscriptions: [PaymentSubscription!]!
+}
+
+type PaymentSubscription {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  renewsAt: DateTime
+  projects: [Project!]!
+  identifier: String
+  paymentAccount: PaymentAccount!
+  plan: Plan!
+  billingPeriod: BillingPeriod!
+  isCanceled: Boolean!
+}
+
+type PermanentAuthToken {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  description: String
+  token: String!
+  issuer: Member!
+  scope: PermanentAuthTokenScope!
+  filters: EntityFilterWhere
+}
+
+enum PermanentAuthTokenScope {
+  QUERY
+  MUTATION
+  OPEN
+}
+
+type Plan {
+  id: ID!
+  name: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  displayName: String!
+  price: Float!
+  isFree: Boolean!
+  limits: [Limit!]!
+}
+
+type PrismaConfig {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  region: Region!
+  isManaged: Boolean!
+}
+
+# Can be used with custom hosted prisma instances
+input PrismaConnection {
+  # The url to the prisma cluster (without .../cluster)
+  url: String!
+  secret: String!
+}
+
+# graphql
+type Profile {
+  email: String!
+  name: String!
+  picture: String
+}
+
+# graphql
+type Progress {
+  current: Float!
+  max: Float
+  percent: Float
+  estimate: Float
+}
+
+type Project {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  description: String
+  picture: String
+  subscription: PaymentSubscription!
+  # The viewers role in this project
+  role: Role!
+  existingRoles: [Role!]!
+  stages: [IStage!]!
+  writableStage: IStage!
+  stage(name: String!): IStage!
+  # List of all members of the given project excluding the viewer
+  members: [Member!]!
+  quotas: Quota!
+  lifecycle: Lifecycle!
+  invites: [Invite!]!
+}
+
+type ProjectPermission implements IPermission {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  description: String!
+  action: ProjectScopeAction!
+}
+
+# graphql
+enum ProjectScopeAction {
+  PROJECT_UPDATE
+  PROJECT_DELETE
+  ROLE_CREATE
+  ROLE_UPDATE
+  ROLE_DELETE
+  ROLE_PERMISSION_ADD
+  ROLE_PERMISSION_REMOVE
+  USER_INVITE
+  USER_REMOVE
+  USER_ASSIGNROLE
+  STAGE_CREATE
+  STAGE_READ
+  STAGE_DELETE
+  STAGE_SYNC
+  STAGE_CLONE
+  STAGE_FORCEREDEPLOY
+  STAGE_UPDATEPERMISSIONS
+  MODEL_CREATE
+  MODEL_READ
+  MODEL_UPDATE
+  MODEL_DELETE
+  ENUMERATION_CREATE
+  ENUMERATION_READ
+  ENUMERATION_UPDATE
+  ENUMERATION_DELETE
+  FIELD_CREATE
+  FIELD_READ
+  FIELD_UPDATE
+  FIELD_DELETE
+  CONTENT_CREATE
+  CONTENT_READ
+  CONTENT_UPDATE
+  CONTENT_PUBLISH
+  CONTENTVIEW_PRIVATE_CREATE
+  CONTENTVIEW_PRIVATE_READ
+  CONTENTVIEW_PRIVATE_UPDATE
+  CONTENTVIEW_PRIVATE_DELETE
+  CONTENTVIEW_PUBLIC_CREATE
+  CONTENTVIEW_PUBLIC_READ
+  CONTENTVIEW_PUBLIC_UPDATE
+  CONTENTVIEW_PUBLIC_DELETE
+  VIEW_GROUP_PRIVATE_CREATE
+  VIEW_GROUP_PRIVATE_READ
+  VIEW_GROUP_PRIVATE_UPDATE
+  VIEW_GROUP_PRIVATE_DELETE
+  VIEW_GROUP_PUBLIC_CREATE
+  VIEW_GROUP_PUBLIC_READ
+  VIEW_GROUP_PUBLIC_UPDATE
+  VIEW_GROUP_PUBLIC_DELETE
+  WEBHOOK_CREATE
+  WEBHOOK_READ
+  WEBHOOK_UPDATE
+  WEBHOOK_DELETE
+  PAT_CREATE
+  PAT_READ
+  PAT_UPDATE
+  PAT_DELETE
+  SYSTEM_TOKEN_CREATE
+  SYSTEM_TOKEN_READ
+  SYSTEM_TOKEN_UPDATE
+  SYSTEM_TOKEN_DELETE
+  INTEGRATION_CREATE
+  INTEGRATION_READ
+  INTEGRATION_UPDATE
+  INTEGRATION_DELETE
+  PLAYGROUND_USE
+  MANAGE_PAYMENT
+}
+
+# graphql
+type ProjectTemplate {
+  id: ID!
+  isPrivate: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  description: String
+  picture: String
+}
+
+type Query {
+  # graphql
+  metaInfo: MetaInfo!
+  # graphql
+  projectTemplates: [ProjectTemplate!]!
+  # graphql
+  viewer: Viewer!
+  userByEmail(email: String!): String
+}
+
+type Quota {
+  apiOperations: Progress!
+  assetTraffic: Progress!
+  records: Progress!
+  seats: Progress!
+  locales: Progress!
+  webhooks: Progress!
+  stages: Progress!
+}
+
+type ReadOnlyStage implements IStage {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  displayName: String!
+  description: String
+  revision: Int!
+  endpoint: String!
+  contentModel: ContentModel!
+  contentView(id: ID!): ContentView!
+  contentViews(includeSystemModels: Boolean = false): [ContentView!]!
+  deploymentStatus: IDeploymentStatus!
+  prismaConfig: PrismaConfig!
+  assetConfig: IAssetConfig!
+  parent: IStage
+  child: IStage!
+  isReadOnly: Boolean!
+  metrics: Metrics!
+  webhook(id: ID!): Webhook!
+  webhooks: [Webhook!]!
+  permanentAuthTokens: [PermanentAuthToken!]!
+  systemTokens: [SystemToken!]!
+  defaultPermissions: StageDefaultPermission!
+  authToken: String!
+}
+
+enum Region {
+  EU_WEST_1
+  US_EAST_1
+  US_WEST_1
+  AP_NORTHEAST_1
+}
+
+type RelationField implements IField & IEntity & IRelationField {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  relatedModel: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+  onDelete: OnDelete!
+  relatedField: IField!
+  contentView: ContentView!
+}
+
+input RemoveMemberInput {
+  id: ID!
+  projectId: ID!
+}
+
+type RemoveMemberPayload {
+  removedMemberId: ID!
+}
+
+input RemovePermissionsToRoleInput {
+  roleId: ID!
+  permissions: [ID!]!
+}
+
+input ReopenPaymentAccountInput {
+  id: ID!
+}
+
+type ReopenPaymentAccountPayload {
+  paymentAccount: PaymentAccount!
+}
+
+input ReplayEventsInput {
+  stageId: ID!
+}
+
+input ReverseField {
+  apiId: String!
+  displayName: String!
+  description: String
+  isList: Boolean!
+  isRequired: Boolean!
+  isHidden: Boolean!
+  onDelete: OnDelete! = SET_NULL
+  tableConfig: FieldConfigInput!
+  formConfig: FieldConfigInput!
+}
+
+input ReverseRelationSide {
+  modelId: ID!
+  field: ReverseField!
+}
+
+input RevertContentModelInput {
+  stageId: ID!
+}
+
+input RevokeInviteInput {
+  id: ID!
+}
+
+type RevokeInvitePayload {
+  revokedInviteId: ID!
+}
+
+type RichTextField implements IField & IDefaultValue & IUnique & IEntity {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  isUnique: Boolean!
+  defaultValue: String
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+}
+
+type Role {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  description: String
+  permissions: [IPermission!]!
+}
+
+input RollbackStageInput {
+  stageId: ID!
+}
+
+input SendInviteInput {
+  email: String!
+  projectId: ID!
+  roleId: ID!
+}
+
+type SendInvitePayload {
+  invite: Invite!
+}
+
+type SetReferralPayload {
+  referral: String!
+}
+
+# graphql
+type StageDefaultPermission {
+  scope: StageDefaultPermissionScope!
+  filters: EntityFilterWhere
+}
+
+input StageDefaultPermissionInput {
+  scope: StageDefaultPermissionScope!
+  filters: EntityFilterWhereInput
+}
+
+enum StageDefaultPermissionScope {
+  QUERY
+  MUTATION
+  PROTECTED
+  OPEN
+}
+
+type StagePermission implements IPermission {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  description: String!
+  stage: IStage
+  action: StageScopeAction!
+}
+
+enum StageScopeAction {
+  TBD
+}
+
+# graphql
+type Stats {
+  time: Int!
+  value: Float!
+}
+
+enum Status {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+type StatusActionRequired implements IDeploymentStatus {
+  id: ID!
+  startedAt: DateTime!
+  stage: IStage!
+  finishedAt: DateTime
+  errors: [String!]!
+  warnings: [String!]!
+}
+
+type StatusContentImportError implements IDeploymentStatus {
+  id: ID!
+  startedAt: DateTime!
+  errors: [String!]!
+  stage: IStage!
+}
+
+type StatusContentImporting implements IDeploymentStatus {
+  id: ID!
+  startedAt: DateTime!
+  stage: IStage!
+}
+
+type StatusError implements IDeploymentStatus {
+  id: ID!
+  startedAt: DateTime!
+  stage: IStage!
+  finishedAt: DateTime
+  errors: [String!]!
+}
+
+type StatusPending implements IDeploymentStatus {
+  id: ID!
+  startedAt: DateTime!
+  stage: IStage!
+}
+
+type StatusReady implements IDeploymentStatus {
+  id: ID!
+  startedAt: DateTime!
+  stage: IStage!
+  finishedAt: DateTime
+  fromRevision: Int!
+}
+
+type StringField implements IField & IDefaultValue & IUnique & IEntity {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  apiId: String!
+  displayName: String!
+  description: String
+  isSystem: Boolean!
+  isList: Boolean!
+  isRequired: Boolean!
+  isUnique: Boolean!
+  defaultValue: String
+  position: Int!
+  isHidden: Boolean!
+  model: IModel!
+  isPrimaryField: Boolean!
+  tableConfig: FieldConfig!
+  formConfig: FieldConfig!
+}
+
+type Subscription {
+  # graphql
+  enumerationCreated(projectId: ID!): CreateEnumerationPayload!
+  enumerationUpdated(projectId: ID!): UpdateEnumerationPayload!
+  enumerationDeleted(projectId: ID!): DeleteEnumerationPayload!
+  # graphql
+  fieldUpdated(projectId: ID!): UpdateFieldPayload!
+  fieldDeleted(projectId: ID!): DeleteFieldPayload!
+  fieldMoved(projectId: ID!): MoveFieldPayload!
+  fieldPrimarySet(projectId: ID!): FieldSetPrimaryPayload!
+  # graphql
+  modelCreated(projectId: ID!): CreateModelPayload!
+  modelUpdated(projectId: ID!): UpdateModelPayload!
+  modelDeleted(projectId: ID!): DeleteModelPayload!
+  # graphql
+  contentViewCreated(stageId: ID!): ContentView!
+  contentViewDeleted(stageId: ID!): String!
+  # graphql
+  webappVersionChanged: WebappVersionChangePayload!
+  # graphql
+  permanentAuthTokenCreated(projectId: ID!): PermanentAuthToken!
+  permanentAuthTokenUpdated(projectId: ID!): PermanentAuthToken!
+  permanentAuthTokenDeleted(projectId: ID!): DeletePermanentAuthTokenPayload!
+  # graphql
+  stageChanged(id: ID!): IStage!
+  # graphql
+  systemTokenCreated(projectId: ID!): SystemToken!
+  systemTokenUpdated(projectId: ID!): SystemToken!
+  systemTokenDeleted(projectId: ID!): DeleteSystemTokenPayload!
+}
+
+input SwitchPaymentSubscriptionInput {
+  planName: String!
+  subscriptionId: ID!
+}
+
+type SwitchPaymentSubscriptionPayload {
+  subscription: PaymentSubscription!
+}
+
+input SyncStageInput {
+  # Syncs the changes from a stage (child) into the destination stage (parent).
+  # Note: child.revision must be > destination.revision
+  destinationStageId: ID!
+  # The number of steps which should be merged. If not defined, all changes will be synced.
+  # Note: 0 < revisions <= destination.revision - child.revision
+  revisions: Int
+}
+
+# graphql
+type SystemToken {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  description: String
+  token: String!
+  issuer: Member!
+  grants: [SystemTokenGrant!]!
+}
+
+enum SystemTokenGrant {
+  CONTENT_EXPORT
+  CONTENT_IMPORT
+}
+
+input TemplateOptionsInput {
+  templateId: ID!
+  includeContent: Boolean!
+}
+
+input UpdateContentViewInput {
+  id: ID!
+  name: String!
+  description: String
+  isPrivate: Boolean!
+  fields: [ContentViewColumnInput!]!
+  orderBy: OrderByInput
+  viewGroupId: ID
+  filters: JSON
+}
+
+type UpdateContentViewPayload {
+  updatedContentView: ContentView!
+}
+
+input UpdateEnumerationInput {
+  id: ID!
+  newApiId: String
+  displayName: String
+  description: String
+  values: [EnumerationValueUpdateInput!]
+}
+
+type UpdateEnumerationPayload {
+  updatedEnumeration: Enumeration!
+  deploymentStatus: IDeploymentStatus!
+  affectedFields: [IField!]!
+}
+
+input UpdateFieldInput {
+  id: ID!
+  apiId: String
+  displayName: String
+  description: String
+  isList: Boolean
+  isRequired: Boolean
+  defaultValue: String
+  isUnique: Boolean
+  isLocalized: Boolean
+  isHidden: Boolean
+  tableConfig: FieldConfigUpdateInput
+  formConfig: FieldConfigUpdateInput
+}
+
+type UpdateFieldPayload {
+  updatedField: IField!
+  updatedContentViewColumns: [ContentViewColumn!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input UpdateModelInput {
+  id: ID!
+  newApiId: String
+  displayName: String
+  description: String
+}
+
+type UpdateModelPayload {
+  updatedModel: Model!
+  contentViews(includeSystemContentViews: Boolean = false): [ContentView!]!
+  deploymentStatus: IDeploymentStatus!
+}
+
+input UpdatePermanentAuthTokenInput {
+  id: ID!
+  name: String
+  description: String
+  scope: PermanentAuthTokenScope
+  filters: EntityFilterWhereInput
+}
+
+input UpdateProfileInput {
+  name: String
+}
+
+input UpdateProjectInput {
+  id: ID!
+  name: String
+  description: String
+  picture: String
+}
+
+input UpdateRoleInput {
+  id: ID!
+  name: String
+  description: String
+}
+
+input UpdateStageDefaultPermissionsInput {
+  stageId: ID!
+  defaultPermissions: StageDefaultPermissionInput!
+}
+
+input UpdateStageStatusInput {
+  stageId: ID!
+}
+
+input UpdateSystemTokenInput {
+  id: ID!
+  name: String
+  description: String
+  grants: [SystemTokenGrant!]
+}
+
+input UpdateUserRoleInput {
+  roleId: ID!
+  userId: ID!
+  projectId: ID!
+}
+
+input UpdateViewGroupInput {
+  id: ID!
+  name: String!
+  description: String
+}
+
+type UpdateViewGroupPayload {
+  updatedViewGroup: ViewGroup!
+}
+
+input UpdateWebhookInput {
+  webhookId: ID!
+  name: String
+  description: String
+  headers: JSON
+  url: String
+  isActive: Boolean
+}
+
+# Represents the logged in user
+type Viewer implements IUser {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  profile: Profile!
+  projects: [Project!]!
+  plans: [Plan!]!
+  legacyProjects: [LegacyProject!]!
+  project(id: ID!): Project!
+  paymentAccounts: [PaymentAccount!]!
+  paymentAccount(id: ID!): PaymentAccount!
+  pendingInvites: [Invite!]!
+}
+
+type ViewGroup {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  description: String
+  stage: IStage!
+  type: ViewGroupType!
+  contentType: ViewGroupContentType!
+  isPrivate: Boolean!
+  position: Int!
+  createdBy: Member
+  contentViews: [ContentView!]!
+}
+
+enum ViewGroupContentType {
+  DEFAULT
+  ASSET
+  COLOR
+  LOCATION
+}
+
+# graphql
+enum ViewGroupType {
+  CUSTOM
+  SYSTEM
+  USER_CREATED
+}
+
+type WebappVersionChangePayload {
+  version: String!
+}
+
+type Webhook {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  description: String
+  url: String!
+  headers: JSON!
+  isActive: Boolean!
+  stage: IStage!
+  type: WebhookType!
+}
+
+enum WebhookType {
+  GLOBAL
+}
+
+type WritableStage implements IStage {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  displayName: String!
+  description: String
+  revision: Int!
+  endpoint: String!
+  contentModel: ContentModel!
+  contentView(id: ID!): ContentView!
+  contentViews(includeSystemModels: Boolean = false): [ContentView!]!
+  deploymentStatus: IDeploymentStatus!
+  prismaConfig: PrismaConfig!
+  assetConfig: IAssetConfig!
+  parent: IStage
+  metrics: Metrics!
+  webhook(id: ID!): Webhook!
+  webhooks: [Webhook!]!
+  permanentAuthTokens: [PermanentAuthToken!]!
+  systemTokens: [SystemToken!]!
+  defaultPermissions: StageDefaultPermission!
+  authToken: String!
+}
+

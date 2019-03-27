@@ -1,0 +1,137 @@
+query ProjectRolesQuery($id: ID!) {
+  viewer {
+    id
+    project(id: $id) {
+      id
+      quotas {
+        seats {
+          ...QuotaProgressFragment
+          __typename
+        }
+        __typename
+      }
+      subscription {
+        id
+        plan {
+          id
+          isFree
+          __typename
+        }
+        __typename
+      }
+      ...ProjectRolesFragment
+      __typename
+    }
+    __typename
+  }
+}
+
+fragment ProjectRolesFragment on Project {
+  id
+  ...ProjectYourRoleFragment
+  existingRoles {
+    ...RoleBasicFragment
+    __typename
+  }
+  members {
+    ...MemberBasicFragment
+    __typename
+  }
+  invites {
+    ...InviteBasicFragment
+    __typename
+  }
+  __typename
+}
+
+fragment RoleBasicFragment on Role {
+  id
+  name
+  permissions {
+    ...PermissionBasicFragment
+    __typename
+  }
+  __typename
+}
+
+fragment PermissionBasicFragment on IPermission {
+  id
+  description
+  __typename
+}
+
+fragment MemberBasicFragment on Member {
+  ...UserBasicFragment
+  role {
+    ...RoleBasicFragment
+    __typename
+  }
+  __typename
+}
+
+fragment UserBasicFragment on IUser {
+  id
+  profile {
+    email
+    name
+    picture
+    __typename
+  }
+  __typename
+}
+
+fragment ProjectYourRoleFragment on Project {
+  id
+  role {
+    ...RoleDetailFragment
+    __typename
+  }
+  __typename
+}
+
+fragment RoleDetailFragment on Role {
+  ...RoleBasicFragment
+  permissions {
+    ...PermissionDetailFragment
+    __typename
+  }
+  __typename
+}
+
+fragment PermissionDetailFragment on IPermission {
+  ...PermissionBasicFragment
+  ... on ProjectPermission {
+    projectAction: action
+    __typename
+  }
+  ... on StagePermission {
+    stageAction: action
+    __typename
+  }
+  ... on ModelPermission {
+    modelAction: action
+    __typename
+  }
+  __typename
+}
+
+fragment InviteBasicFragment on Invite {
+  id
+  email
+  expirationDate
+  code
+  role {
+    id
+    name
+    __typename
+  }
+  __typename
+}
+
+fragment QuotaProgressFragment on Progress {
+  current
+  estimate
+  max
+  percent
+  __typename
+}

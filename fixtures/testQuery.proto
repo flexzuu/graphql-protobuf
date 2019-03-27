@@ -1,30 +1,37 @@
 // testQuery.proto
+syntax = "proto3";
+
 package graphql;
 
 message Request {
-    required string query = 1;
+    string query = 1;
 }
 
 message Response_testQuery {
-    required Query_testQuery data = 1;
+    Query_testQuery data = 1;
 }
 
 message Query_testQuery {
-    optional Test_test test = 1;
-    optional Test_x x = 2;
-    optional Test_both both = 3;
+    Test_test test = 1;
+    Test_x x = 2;
+    Test_both both = 3;
+    Test_testReq testReq = 4;
 }
 
 message Test_test {
-    optional string string = 1;
+    string string = 1;
 }
 
 message Test_x {
-    optional int32 number = 1;
+    int32 number = 1;
 }
 
 message Test_both {
-    optional int32 number = 1;
-    optional string string = 2;
-    optional int32 alias = 3;
+    int32 number = 1;
+    string string = 2;
+    int32 alias = 3;
+}
+
+message Test_testReq {
+    string string = 1;
 }

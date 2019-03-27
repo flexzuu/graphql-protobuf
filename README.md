@@ -19,3 +19,12 @@ It was designed for the following usecase:
 - [ ] GraphQL Variables
 - [ ] Multiple Queries
 - [ ] Multiple Queries in one document
+
+
+## Benchmark
+```
+❯ curl -X GET -so /dev/null -w '%{size_download}' \
+    http://localhost:3001/ \
+    -H 'Content-Type: application/json' --compressed
+3278 bytes
+```

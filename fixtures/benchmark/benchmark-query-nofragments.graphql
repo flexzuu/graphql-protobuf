@@ -1,0 +1,81 @@
+query testQuery {
+  viewer {
+    id
+    project {
+      id
+      quotas {
+        seats {
+          current
+          estimate
+          max
+          percent
+          __typename
+        }
+        __typename
+      }
+      subscription {
+        id
+        plan {
+          id
+          isFree
+          __typename
+        }
+        __typename
+      }
+      role {
+        id
+        name
+        permissions {
+          id
+          description
+          __typename
+        }
+        __typename
+      }
+      existingRoles {
+        id
+        name
+        permissions {
+          id
+          description
+          __typename
+        }
+        __typename
+      }
+      members {
+        id
+        profile {
+          email
+          name
+          picture
+          __typename
+        }
+        role {
+          id
+          name
+          permissions {
+            id
+            description
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+      invites {
+        id
+        email
+        expirationDate
+        code
+        role {
+          id
+          name
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

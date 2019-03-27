@@ -1,6 +1,5 @@
 
-ƒ
-query testQuery {
+œquery testQuery {
   test {
     string
   }
@@ -11,5 +10,8 @@ query testQuery {
     number
     string
     alias: number
+  }
+  testReq {
+    string
   }
 }

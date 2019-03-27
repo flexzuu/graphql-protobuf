@@ -21,6 +21,9 @@ Object {
     "x": Object {
       "number": 42,
     },
+    "testReq": Object {
+      "string": "req string",
+    },
   },
 }
 `);

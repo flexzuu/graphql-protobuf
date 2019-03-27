@@ -10,6 +10,7 @@ import {
   ASTKindToNode,
   isScalarType,
   DocumentNode,
+  getNamedType,
 } from 'graphql';
 import { ReadonlyArray } from '../readOnlyArray';
 
@@ -19,7 +20,8 @@ function getScalarTypeName(name: string) {
       return 'string';
     case 'Int':
       return 'int32';
-
+    case 'Float':
+      return 'float';
     default:
       throw new Error('unsuported type ' + name);
   }
@@ -43,7 +45,7 @@ export function createRootWithQueries(
 export function addReqMsgToNamespace(ns: Namespace) {
   //add Request Type
   const req = new Type('Request');
-  req.add(new Field('query', 1, 'string', 'required'));
+  req.add(new Field('query', 1, 'string'));
   ns.add(req);
 }
 
@@ -64,7 +66,7 @@ export function addDocumentNodeResMsgToNamespace(
   const typeInfo = new TypeInfo(schema);
   const visitor: Visitor<ASTKindToNode> = {
     [Kind.OPERATION_DEFINITION]: (node, key, parent, path, ancestors) => {
-      const typeName = `${typeInfo.getType()!.toString()}_${node.name!.value}`;
+      const typeName = `${getNamedType(typeInfo.getType()!).toString()}_${node.name!.value}`;
       let type = ns.get(typeName) as Type;
       if (!type) {
         type = new Type(typeName);
@@ -72,7 +74,7 @@ export function addDocumentNodeResMsgToNamespace(
       }
       ns.add(
         new Type(`Response_${node.name!.value}`).add(
-          new Field('data', 1, typeName, 'required')
+          new Field('data', 1, typeName)
         )
       );
     },
@@ -88,7 +90,7 @@ export function addDocumentNodeResMsgToNamespace(
         parentField =
           (ancestor.alias && ancestor.alias.value) || ancestor.name.value;
       } else {
-        console.error(ancestor);
+        console.error("wrong ancestor kind", ancestor);
         throw new Error();
       }
 
@@ -96,9 +98,9 @@ export function addDocumentNodeResMsgToNamespace(
       let typeName;
 
       if (isScalarType(typeInfo.getType())) {
-        typeName = getScalarTypeName(typeInfo.getType()!.toString());
+        typeName = getScalarTypeName(getNamedType(typeInfo.getType()!).toString());
       } else {
-        typeName = `${typeInfo.getType()!.toString()}_${fieldName}`;
+        typeName = `${getNamedType(typeInfo.getType()!).toString()}_${fieldName}`;
       }
       const parentTypeName = `${typeInfo.getParentType()!.name}_${parentField}`;
 
@@ -113,7 +115,8 @@ export function addDocumentNodeResMsgToNamespace(
           )
         );
       } else {
-        console.error(parentTypeName);
+        console.error("did not find parentType", parentTypeName, parentType);
+        console.log(JSON.stringify(ns.toJSON(), null, 2))
         throw new Error();
       }
       //add field return type

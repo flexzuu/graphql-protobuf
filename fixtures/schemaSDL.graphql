@@ -5,4 +5,5 @@ type Test {
 
 type Query {
   test: Test
+  testReq: Test!
 }

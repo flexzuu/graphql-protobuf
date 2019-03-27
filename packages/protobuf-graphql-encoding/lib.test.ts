@@ -7,33 +7,12 @@ import {
 import { buildSchema, execute, parse } from 'graphql';
 import { loadSync } from 'protobufjs';
 import { cloneDeepWith } from 'lodash';
-import { writeFileSync } from 'fs';
+import { writeFileSync, readFileSync } from 'fs';
+import { readFixtureSync } from '../testUtils';
+const converter = require('protobufjs/cli/targets/proto3.js');
 
-const schemaSDL = `
-type Test {
-  string: String
-  number: Int
-}
-
-type Query {
-  test: Test
-}
-`;
-const query = `
-query testQuery {
-  test {
-    string
-  }
-  x: test {
-    number
-  }
-  both: test {
-    number
-    string
-    alias: number
-  }
-}
-`;
+const schemaSDL = readFixtureSync("schemaSDL.graphql")
+const query = readFixtureSync("testQuery.graphql")
 
 const root = loadSync('fixtures/testQuery.proto');
 
@@ -51,6 +30,18 @@ it('constructs the correct protobuf createRootWithQueries', () => {
   expect(namespace.toJSON()).toEqual(root.get('graphql')!.toJSON());
 });
 
+it('constructs the correct protobuf benchmark example', () => {
+  const q = readFixtureSync('benchmark/benchmark-query-nofragments.graphql');
+  const s = buildSchema(readFixtureSync('benchmark/benchmark-schema.graphql'));
+
+  const { namespace } = createRootWithQueries([q], s);
+  let data: string;
+  converter(namespace, {}, (error: any, d: any) => {
+    data = d;
+    expect(data).toMatchInlineSnapshot();
+  });
+});
+
 it('serializes the data', () => {
   const { namespace: ns, root: actualRoot } = createRoot();
   addReqMsgToNamespace(ns);
@@ -64,6 +55,9 @@ it('serializes the data', () => {
       },
       test: null,
       x: null,
+      testReq: {
+        string: "req string"
+      }
     },
   };
 
@@ -121,6 +115,9 @@ it('full round trip', () => {
         string: 'foo',
         number: 42,
       },
+      testReq: {
+        string: "req string"
+      }
     })
   );
 
@@ -144,6 +141,9 @@ it('full round trip', () => {
       \\"number\\": 42,
       \\"string\\": \\"foo\\",
       \\"alias\\": 42
+    },
+    \\"testReq\\": {
+      \\"string\\": \\"req string\\"
     }
   }
 }"

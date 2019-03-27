@@ -10,4 +10,7 @@ query testQuery {
     string
     alias: number
   }
+  testReq {
+    string
+  }
 }
