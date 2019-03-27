@@ -18,7 +18,7 @@ const root = loadSync("fixtures/testQuery.proto");
 
 const schema = buildSchema(schemaSDL);
 
-fit("constructs the correct protobuf", () => {
+it("constructs the correct protobuf", () => {
   const { namespace: ns } = createRoot();
   addReqMsgToNamespace(ns);
   addQueryResMsgToNamespace(query, schema, ns);
@@ -51,6 +51,263 @@ message Response_testQuery {
     Data data = 1;
 
     message Data {
+
+        Field_viewer viewer = 1;
+
+        message Field_viewer {
+
+            Field_id id = 1;
+            Field_project project = 2;
+            Field___typename __typename = 3;
+
+            message Field_id {
+            }
+
+            message Field_project {
+
+                Field_id id = 1;
+                Field_quotas quotas = 2;
+                Field_subscription subscription = 3;
+                Field_role role = 4;
+                Field_existingRoles existing_roles = 5;
+                Field_members members = 6;
+                Field_invites invites = 7;
+                Field___typename __typename = 8;
+
+                message Field_id {
+                }
+
+                message Field_quotas {
+
+                    Field_seats seats = 1;
+                    Field___typename __typename = 2;
+
+                    message Field_seats {
+
+                        Field_current current = 1;
+                        float estimate = 2;
+                        float max = 3;
+                        float percent = 4;
+                        Field___typename __typename = 5;
+
+                        message Field_current {
+                        }
+
+                        message Field___typename {
+                        }
+                    }
+
+                    message Field___typename {
+                    }
+                }
+
+                message Field_subscription {
+
+                    Field_id id = 1;
+                    Field_plan plan = 2;
+                    Field___typename __typename = 3;
+
+                    message Field_id {
+                    }
+
+                    message Field_plan {
+
+                        Field_id id = 1;
+                        Field_isFree is_free = 2;
+                        Field___typename __typename = 3;
+
+                        message Field_id {
+                        }
+
+                        message Field_isFree {
+                        }
+
+                        message Field___typename {
+                        }
+                    }
+
+                    message Field___typename {
+                    }
+                }
+
+                message Field_role {
+
+                    Field_id id = 1;
+                    Field_name name = 2;
+                    Field_permissions permissions = 3;
+                    Field___typename __typename = 4;
+
+                    message Field_id {
+                    }
+
+                    message Field_name {
+                    }
+
+                    message Field_permissions {
+
+                        Field_id id = 1;
+                        Field_description description = 2;
+                        Field___typename __typename = 3;
+
+                        message Field_id {
+                        }
+
+                        message Field_description {
+                        }
+
+                        message Field___typename {
+                        }
+                    }
+
+                    message Field___typename {
+                    }
+                }
+
+                message Field_existingRoles {
+
+                    Field_id id = 1;
+                    Field_name name = 2;
+                    Field_permissions permissions = 3;
+                    Field___typename __typename = 4;
+
+                    message Field_id {
+                    }
+
+                    message Field_name {
+                    }
+
+                    message Field_permissions {
+
+                        Field_id id = 1;
+                        Field_description description = 2;
+                        Field___typename __typename = 3;
+
+                        message Field_id {
+                        }
+
+                        message Field_description {
+                        }
+
+                        message Field___typename {
+                        }
+                    }
+
+                    message Field___typename {
+                    }
+                }
+
+                message Field_members {
+
+                    Field_id id = 1;
+                    Field_profile profile = 2;
+                    Field_role role = 3;
+                    Field___typename __typename = 4;
+
+                    message Field_id {
+                    }
+
+                    message Field_profile {
+
+                        Field_email email = 1;
+                        Field_name name = 2;
+                        string picture = 3;
+                        Field___typename __typename = 4;
+
+                        message Field_email {
+                        }
+
+                        message Field_name {
+                        }
+
+                        message Field___typename {
+                        }
+                    }
+
+                    message Field_role {
+
+                        Field_id id = 1;
+                        Field_name name = 2;
+                        Field_permissions permissions = 3;
+                        Field___typename __typename = 4;
+
+                        message Field_id {
+                        }
+
+                        message Field_name {
+                        }
+
+                        message Field_permissions {
+
+                            Field_id id = 1;
+                            Field_description description = 2;
+                            Field___typename __typename = 3;
+
+                            message Field_id {
+                            }
+
+                            message Field_description {
+                            }
+
+                            message Field___typename {
+                            }
+                        }
+
+                        message Field___typename {
+                        }
+                    }
+
+                    message Field___typename {
+                    }
+                }
+
+                message Field_invites {
+
+                    Field_id id = 1;
+                    Field_email email = 2;
+                    Field_expirationDate expiration_date = 3;
+                    Field_code code = 4;
+                    Field_role role = 5;
+                    Field___typename __typename = 6;
+
+                    message Field_id {
+                    }
+
+                    message Field_email {
+                    }
+
+                    message Field_expirationDate {
+                    }
+
+                    message Field_code {
+                    }
+
+                    message Field_role {
+
+                        Field_id id = 1;
+                        Field_name name = 2;
+                        Field___typename __typename = 3;
+
+                        message Field_id {
+                        }
+
+                        message Field_name {
+                        }
+
+                        message Field___typename {
+                        }
+                    }
+
+                    message Field___typename {
+                    }
+                }
+
+                message Field___typename {
+                }
+            }
+
+            message Field___typename {
+            }
+        }
     }
 }"
 `);
@@ -169,6 +426,11 @@ it("full round trip", () => {
     },
     \\"testReq\\": {
       \\"string\\": \\"req string\\"
+    },
+    \\"testb\\": {
+      \\"test\\": {
+        \\"string\\": \\"foo\\"
+      }
     }
   }
 }"

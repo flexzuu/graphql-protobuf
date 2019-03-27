@@ -1,5 +1,5 @@
 
-Òquery testQuery {
+Èquery testQuery {
   test {
     string
   }
@@ -14,9 +14,9 @@
   testReq {
     string
   }
-  # testb {
-  #   test {
-  #     string
-  #   }
-  # }
+  testb {
+    test {
+      string
+    }
+  }
 }
