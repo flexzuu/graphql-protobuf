@@ -12,7 +12,8 @@ It was designed for the following usecase:
 6.  client decodes the response message using the in step one created protobuf
 
 ## Not working yet:
-
+- [ ] GraphQL Mutations
+- [ ] GraphQL Subscriptions
 - [ ] GraphQL Interfaces
 - [ ] GraphQL Union Types
 - [ ] GraphQL Fragments
