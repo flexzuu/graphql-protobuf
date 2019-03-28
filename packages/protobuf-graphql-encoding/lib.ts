@@ -22,7 +22,7 @@ export function createRootFromQuery(
   schema: GraphQLSchema
 ) {
   const { namespace, root } = createRoot("graphql");
-  addReqMsgToNamespace(namespace);
+  addSimpleReqMsgToNamespace(namespace);
   var RequestMessage = root.lookupType('graphql.Request');
   addQueryResMsgToNamespace(query, schema, namespace);
   var ResponseMessage = root.lookupType('graphql.Response');
@@ -34,7 +34,7 @@ export function createRootFromBody(
   schema: GraphQLSchema
 ) {
   const { namespace, root } = createRoot("graphql");
-  addReqMsgToNamespace(namespace);
+  addSimpleReqMsgToNamespace(namespace);
   var RequestMessage = root.lookupType('graphql.Request');
   const reqJSON = RequestMessage.decode(body).toJSON();
   const query = reqJSON.query;
@@ -49,7 +49,7 @@ function createRoot(pkgName: string = 'graphql') {
 }
 
 
-function addReqMsgToNamespace(ns: Namespace) {
+function addSimpleReqMsgToNamespace(ns: Namespace) {
   //add Request Type
   const req = new Type('Request');
   req.add(new Field('query', 1, 'string'));
@@ -62,14 +62,6 @@ function addQueryResMsgToNamespace(
   ns: Namespace
 ) {
   const ast = parse(query);
-  return addDocumentNodeResMsgToNamespace(ast, schema, ns);
-}
-
-function addDocumentNodeResMsgToNamespace(
-  ast: DocumentNode,
-  schema: GraphQLSchema,
-  ns: Namespace
-) {
   const typeInfo = new TypeInfo(schema);
   let ancestors: Type[] = [];
   const visitor: Visitor<ASTKindToNode> = {
