@@ -19,10 +19,8 @@ import { last } from 'lodash';
 // creates a protocol buffer definition with Request and Response messages
 export function createRootFromQuery(query: string, schema: GraphQLSchema) {
   const { namespace, root } = createRoot('graphql');
-  addSimpleReqMsgToNamespace(namespace);
-  var RequestMessage = root.lookupType('graphql.Request');
-  addQueryResMsgToNamespace(query, schema, namespace);
-  var ResponseMessage = root.lookupType('graphql.Response');
+  const RequestMessage = addSimpleReqMsgToNamespace(namespace);
+  const ResponseMessage = addQueryResMsgToNamespace(query, schema, namespace);
   return { root, ResponseMessage, RequestMessage };
 }
 
@@ -33,8 +31,7 @@ export function createRootFromBody(
   schema: GraphQLSchema
 ) {
   const { namespace, root } = createRoot('graphql');
-  addSimpleReqMsgToNamespace(namespace);
-  var RequestMessage = root.lookupType('graphql.Request');
+  const RequestMessage = addSimpleReqMsgToNamespace(namespace);
   const reqJSON = RequestMessage.decode(reader).toJSON();
   const query = reqJSON.query;
   // TODO: Add handling of parameters.
@@ -42,8 +39,7 @@ export function createRootFromBody(
   // addVariablesToReqMsg it needs to do:
   // - update the Request message add field that holds the variables
   // - add message type for the variables to the Request message following the same structure addQueryResMsgToNamespace uses.
-  addQueryResMsgToNamespace(query, schema, namespace);
-  var ResponseMessage = root.lookupType('graphql.Response');
+  const ResponseMessage = addQueryResMsgToNamespace(query, schema, namespace);
   // TODO: return variables here
   return { root, ResponseMessage, RequestMessage, query };
 }
@@ -53,18 +49,20 @@ function createRoot(pkgName: string = 'graphql') {
   return { namespace: root.define(pkgName), root };
 }
 
-function addSimpleReqMsgToNamespace(ns: Namespace) {
-  //add Request Type
-  const req = new Type('Request');
-  req.add(new Field('query', 1, 'string'));
-  ns.add(req);
+function addSimpleReqMsgToNamespace(ns: Namespace): Type {
+  // add RequestMessage Type
+  const RequestMessage = new Type('Request');
+  RequestMessage.add(new Field('query', 1, 'string'));
+  ns.add(RequestMessage);
+  return RequestMessage
 }
 
 function addQueryResMsgToNamespace(
   query: string,
   schema: GraphQLSchema,
   ns: Namespace
-) {
+): Type {
+  let ResponseQueryType: Type | undefined;
   const queryAST = parse(query);
   const graphQLTypeInfo = new TypeInfo(schema);
 
@@ -79,7 +77,7 @@ function addQueryResMsgToNamespace(
       //Note: We currently assume there can be only one Operation definition per document
       //Note: Because of this assumption this should be called only once for now.
       //TODO: Update to allow multiple operations per document
-      const ResponseQueryType = new Type(`Response`).add(
+      ResponseQueryType = new Type(`Response`).add(
         new Field('data', 1, 'Data')
       );
       ns.add(ResponseQueryType);
@@ -153,6 +151,10 @@ function addQueryResMsgToNamespace(
   const decoratedVisitor = visitWithTypeInfo(graphQLTypeInfo, visitor);
   // execute the visitor on the queryAST using graphQLs visit functionality
   visit(queryAST, decoratedVisitor);
+  if (!ResponseQueryType) {
+    throw new Error('invariant: no response type was created');
+  }
+  return ResponseQueryType;
 }
 
 // checks if a the fully unwrapped version of type is scalar a scalar type
