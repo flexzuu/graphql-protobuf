@@ -1,4 +1,4 @@
-import { Type, Field, Namespace, Root } from 'protobufjs/light';
+import { Type, Field, Namespace, Root, Reader } from 'protobufjs/light';
 import {
   parse,
   TypeInfo,
@@ -16,6 +16,7 @@ import {
 } from 'graphql';
 import { last } from 'lodash';
 
+// creates a protocol buffer definition with Request and Response messages
 export function createRootFromQuery(query: string, schema: GraphQLSchema) {
   const { namespace, root } = createRoot('graphql');
   addSimpleReqMsgToNamespace(namespace);
@@ -25,14 +26,25 @@ export function createRootFromQuery(query: string, schema: GraphQLSchema) {
   return { root, ResponseMessage, RequestMessage };
 }
 
-export function createRootFromBody(body: any, schema: GraphQLSchema) {
+// creates a protocol buffer definition with Request and Response messages
+// Assumes the Reader holds a protobuf encoded Request with a query
+export function createRootFromBody(
+  reader: Reader | Uint8Array,
+  schema: GraphQLSchema
+) {
   const { namespace, root } = createRoot('graphql');
   addSimpleReqMsgToNamespace(namespace);
   var RequestMessage = root.lookupType('graphql.Request');
-  const reqJSON = RequestMessage.decode(body).toJSON();
+  const reqJSON = RequestMessage.decode(reader).toJSON();
   const query = reqJSON.query;
+  // TODO: Add handling of parameters.
+  // As we got the query here we can now use something similar to addQueryResMsgToNamespace.
+  // addVariablesToReqMsg it needs to do:
+  // - update the Request message add field that holds the variables
+  // - add message type for the variables to the Request message following the same structure addQueryResMsgToNamespace uses.
   addQueryResMsgToNamespace(query, schema, namespace);
   var ResponseMessage = root.lookupType('graphql.Response');
+  // TODO: return variables here
   return { root, ResponseMessage, RequestMessage, query };
 }
 
@@ -53,67 +65,103 @@ function addQueryResMsgToNamespace(
   schema: GraphQLSchema,
   ns: Namespace
 ) {
-  const ast = parse(query);
-  const typeInfo = new TypeInfo(schema);
-  let ancestors: Type[] = [];
+  const queryAST = parse(query);
+  const graphQLTypeInfo = new TypeInfo(schema);
+
+  // Keep track of the ancestor protobuf message types
+  let ancestorMsgTypes: Type[] = [];
+  // A visitor for the graphql built-in visit function
+  // visit() will walk through an AST using a depth first traversal, calling
+  // the visitor's enter function at each node in the traversal, and calling the
+  //  leave function after visiting that node and all of its child nodes.
   const visitor: Visitor<ASTKindToNode> = {
     [Kind.OPERATION_DEFINITION]: node => {
+      //Note: We currently assume there can be only one Operation definition per document
+      //Note: Because of this assumption this should be called only once for now.
+      //TODO: Update to allow multiple operations per document
       const ResponseQueryType = new Type(`Response`).add(
         new Field('data', 1, 'Data')
       );
       ns.add(ResponseQueryType);
       const DataType = new Type(`Data`);
       ResponseQueryType.add(DataType);
-      ancestors.push(DataType);
+      ancestorMsgTypes.push(DataType);
     },
+    // Summery:
+    // For every field enter and leave will get called
+    // On enter a new field is added to the parent type
+    // If the return type of the field is a scalar we can assume we don't go deeper and the return type is already created.
+    // If the return type is not scalar we create a type that can hold the fields that will be created in the next traversal step.
+    // To be able to connect the fields to the correct type we create it here and update the ancestors with it.
+    // on leaving fields with non scalar return types we pop the last ancestors to keep them consistent with the tree traversal.
     [Kind.FIELD]: {
       enter(node) {
-        const parent = last(ancestors)!;
-        const fieldName = (node.alias && node.alias.value) || node.name.value;
-        const fieldType = typeInfo.getType();
-        if (!fieldType) {
-          throw new Error('No field type');
+        const parentMsgType = last(ancestorMsgTypes)!;
+        const graphQLFieldName =
+          (node.alias && node.alias.value) || node.name.value;
+        const graphQLReturnType = graphQLTypeInfo.getType();
+        if (!graphQLReturnType) {
+          throw new Error('invariant: field has no return type');
         }
-        let typeName;
-        if (isNamedScalarType(fieldType)) {
-          typeName = getScalarTypeName(getNamedType(fieldType).toString());
+        // Set Return Type Name depending on if its scalar or a custom type
+        let returnTypeName;
+        if (isNamedScalarType(graphQLReturnType)) {
+          returnTypeName = getScalarTypeName(
+            getNamedType(graphQLReturnType).toString()
+          );
         } else {
-          typeName = `Field_${fieldName}`;
+          // Create a unique name for the return type of the field
+          returnTypeName = `Field_${graphQLFieldName}`;
         }
-        parent.add(
+        // Add the field to the parent
+        parentMsgType.add(
           new Field(
-            fieldName,
-            Object.keys(parent.fields).length + 1,
-            typeName,
-            isListTypeDeep(fieldType) ? 'repeated' : undefined
+            graphQLFieldName,
+            // set increasing ids
+            Object.keys(parentMsgType.fields).length + 1,
+            returnTypeName,
+            // Set list to be represented as repeated
+            isListTypeDeep(graphQLReturnType) ? 'repeated' : undefined
           )
         );
-        if (!isNamedScalarType(fieldType)) {
-          const FieldType = new Type(typeName);
-          parent.add(FieldType);
-          ancestors.push(FieldType);
+
+        // Create special message type for non scalar
+        if (!isNamedScalarType(graphQLReturnType)) {
+          //TODO: Add special handling for Enumerations, Interfaces and Unions
+          const returnMsgType = new Type(returnTypeName);
+          // Attach not to the root but the parent to
+          // follow the tree structure of the query
+          // and avoid name collisions
+          parentMsgType.add(returnMsgType);
+          // keep the ancestors updated
+          ancestorMsgTypes.push(returnMsgType);
         }
       },
       leave(node) {
-        const fieldType = typeInfo.getType();
-        if (!fieldType) {
-          throw new Error('No field type');
+        const graphQLReturnType = graphQLTypeInfo.getType();
+        if (!graphQLReturnType) {
+          throw new Error('invariant: field has no return type');
         }
-        if (!isNamedScalarType(fieldType)) {
-          ancestors.pop();
+        if (!isNamedScalarType(graphQLReturnType)) {
+          // keep the ancestors updated
+          ancestorMsgTypes.pop();
         }
       },
     },
   };
-  visit(ast, visitWithTypeInfo(typeInfo, visitor));
+  // Decorate visitor so that it keeps graphQLTypeInfo updated with the current nodes type information.
+  const decoratedVisitor = visitWithTypeInfo(graphQLTypeInfo, visitor);
+  // execute the visitor on the queryAST using graphQLs visit functionality
+  visit(queryAST, decoratedVisitor);
 }
 
+// checks if a the fully unwrapped version of type is scalar a scalar type
 function isNamedScalarType(t: GraphQLType) {
   return isScalarType(getNamedType(t));
 }
 
+// deeply check if a type is a List Type.
 function isListTypeDeep(t: GraphQLType) {
-  /* eslint-enable no-redeclare */
   if (t) {
     let unwrappedType = t;
     while (
@@ -126,6 +174,7 @@ function isListTypeDeep(t: GraphQLType) {
   }
 }
 
+// map GraphQL Scalars to protobuf scalars
 function getScalarTypeName(name: string) {
   switch (name) {
     case 'String':
@@ -139,8 +188,9 @@ function getScalarTypeName(name: string) {
     case 'Boolean':
       return 'bool';
     case 'DateTime':
+      // We currently use a string for representing DateTime because thats what JSON uses.
       return 'string';
     default:
-      throw new Error('unsuported type ' + name);
+      throw new Error(`invariant: unsupported scalar type: "${name}"`);
   }
 }
