@@ -2,14 +2,11 @@ import express from 'express';
 import compression from 'compression';
 import bodyParser from 'body-parser';
 
-import { cloneDeepWith } from 'lodash';
 import {
-  createRoot,
-  addReqMsgToNamespace,
-  addQueryResMsgToNamespace,
+  createRootFromQuery
 } from '../protobuf-graphql-encoding/index';
 import { buildSchema } from 'graphql';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync } from 'fs';
 const converter = require("protobufjs/cli/targets/proto3.js")
 const app = express();
 const schema = buildSchema(
@@ -65,12 +62,7 @@ app.all('/:queryName', function(req, res, next) {
       break;
   }
   if (req.headers['content-type'] === 'application/gqlproto') {
-    const { namespace: ns, root } = createRoot('graphql_server');
-    addReqMsgToNamespace(ns);
-    var RequestMessage = root.lookupType('graphql_server.Request');
-
-    addQueryResMsgToNamespace(query, schema, ns);
-    var ResponseMessage = root.lookupType(`graphql_server.Response`);
+    const { root, ResponseMessage } = createRootFromQuery(query, schema);
     converter(root,{}, (error:any , data:any) => console.log(data))
 
     const errMsg = ResponseMessage.verify(benchmarkResponse);

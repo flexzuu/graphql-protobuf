@@ -2,9 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { cloneDeepWith } from 'lodash';
 import {
-  createRoot,
-  addReqMsgToNamespace,
-  addQueryResMsgToNamespace,
+  createRootFromBody
 } from '../protobuf-graphql-encoding/index';
 import { execute, buildSchema, parse } from 'graphql';
 import { readFileSync } from 'fs';
@@ -23,11 +21,7 @@ app.use(
 );
 app.all('/', function(req, res, next) {
   if (req.headers['content-type'] === 'application/gqlproto') {
-    const { namespace: ns, root } = createRoot('graphql_server');
-    addReqMsgToNamespace(ns);
-    var RequestMessage = root.lookupType('graphql_server.Request');
-    const reqJSON = RequestMessage.decode(req.body).toJSON();
-    const query = reqJSON.query;
+    const { ResponseMessage, query } = createRootFromBody(req.body, schema);
     const data = cloneDeepWith(
       execute(schema, parse(query), {
         test: {
@@ -36,9 +30,6 @@ app.all('/', function(req, res, next) {
         },
       })
     );
-
-    addQueryResMsgToNamespace(query, schema, ns);
-    var ResponseMessage = root.lookupType('graphql_server.Response');
 
     const errMsg = ResponseMessage.verify(data);
     if (errMsg) throw Error(errMsg);

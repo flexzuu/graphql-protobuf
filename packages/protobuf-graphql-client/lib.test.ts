@@ -1,8 +1,8 @@
 import { Client } from './lib';
-import { buildSchema, parse } from 'graphql';
+import { buildSchema } from 'graphql';
 import { readFixtureSync } from '../testUtils';
 const schema = buildSchema(readFixtureSync('schemaSDL.graphql'));
-const query = parse(readFixtureSync('testQuery.graphql'));
+const query = readFixtureSync('testQuery.graphql');
 
 xit('works', async done => {
   const c = new Client('http://localhost:3001', schema);
@@ -34,9 +34,10 @@ it('benchmark encoding works (big)', async done => {
   const benchmarkSchema = buildSchema(
     readFixtureSync('benchmark/benchmark-schema.graphql')
   );
-  const benchmarkQuery = parse(
-    readFixtureSync('benchmark/big/benchmark-query-nofragments.graphql')
+  const benchmarkQuery = readFixtureSync(
+    'benchmark/big/benchmark-query-nofragments.graphql'
   );
+
   const benchmarkResponse = JSON.parse(
     readFixtureSync('benchmark/big/benchmark-response.json')
   );
@@ -50,9 +51,10 @@ it('benchmark encoding works (small)', async done => {
   const benchmarkSchema = buildSchema(
     readFixtureSync('benchmark/benchmark-schema.graphql')
   );
-  const benchmarkQuery = parse(
-    readFixtureSync('benchmark/small/benchmark-query-nofragments.graphql')
+  const benchmarkQuery = readFixtureSync(
+    'benchmark/small/benchmark-query-nofragments.graphql'
   );
+
   const benchmarkResponse = JSON.parse(
     readFixtureSync('benchmark/small/benchmark-response.json')
   );

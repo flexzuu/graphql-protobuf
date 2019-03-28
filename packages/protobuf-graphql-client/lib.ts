@@ -1,9 +1,7 @@
 import { DocumentNode, GraphQLSchema, print } from 'graphql';
 import fetch, { RequestInit } from 'node-fetch';
 import {
-  createRoot,
-  addDocumentNodeResMsgToNamespace,
-  addReqMsgToNamespace,
+  createRootFromQuery
 } from '../protobuf-graphql-encoding';
 interface ResponseWrapper<T> {
   errors: [];
@@ -23,14 +21,10 @@ export class Client {
     this.url = url;
     this.schema = schema;
   }
-  public async query<T>(document: DocumentNode): Promise<ResponseWrapper<T>> {
-    const { namespace: ns, root: actualRoot } = createRoot();
-    addReqMsgToNamespace(ns);
-    addDocumentNodeResMsgToNamespace(document, this.schema, ns);
-    var ResponseMessage = actualRoot.lookupType('graphql.Response');
-    var RequestMessage = actualRoot.lookupType('graphql.Request');
+  public async query<T>(q: string): Promise<ResponseWrapper<T>> {
+    const { RequestMessage, ResponseMessage } = createRootFromQuery(q, this.schema);
     const req = {
-      query: print(document),
+      query: q,
     };
     // Verify the payload if necessary (i.e. when possibly incomplete or invalid)
     let errMsg = RequestMessage.verify(req);

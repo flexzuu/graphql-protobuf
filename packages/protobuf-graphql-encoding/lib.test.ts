@@ -1,45 +1,40 @@
-import {
-  addQueryResMsgToNamespace,
-  addReqMsgToNamespace,
-  createRoot,
-  createRootWithQueries
-} from "./lib";
-import { buildSchema, execute, parse } from "graphql";
-import { loadSync } from "protobufjs";
-import { cloneDeepWith } from "lodash";
-import { writeFileSync, readFileSync } from "fs";
-import { readFixtureSync } from "../testUtils";
-const converter = require("protobufjs/cli/targets/proto3.js");
+import { createRootFromQuery, createRootFromBody } from './lib';
+import { buildSchema, execute, parse } from 'graphql';
+import { loadSync } from 'protobufjs';
+import { cloneDeepWith } from 'lodash';
+import { writeFileSync } from 'fs';
+import { readFixtureSync } from '../testUtils';
+const converter = require('protobufjs/cli/targets/proto3.js');
 
-const schemaSDL = readFixtureSync("schemaSDL.graphql");
-const query = readFixtureSync("testQuery.graphql");
+const schemaSDL = readFixtureSync('schemaSDL.graphql');
+const query = readFixtureSync('testQuery.graphql');
 
-const root = loadSync("fixtures/testQuery.proto");
+const root = loadSync('fixtures/testQuery.proto');
 
 const schema = buildSchema(schemaSDL);
 
-it("constructs the correct protobuf", () => {
-  const { namespace: ns } = createRoot();
-  addReqMsgToNamespace(ns);
-  addQueryResMsgToNamespace(query, schema, ns);
-  expect(ns.toJSON()).toEqual(root.get("graphql")!.toJSON());
-});
-
-it("constructs the correct protobuf createRootWithQueries", () => {
-  const { namespace } = createRootWithQueries([query], schema);
-  expect(namespace.toJSON()).toEqual(root.get("graphql")!.toJSON());
-});
-
-it("constructs the correct protobuf benchmark big example", () => {
-  const q = readFixtureSync(
-    "benchmark/big/benchmark-query-nofragments.graphql"
+fit('createRootFromQuery constructs the correct protobuf', () => {
+  const { root: r, ResponseMessage, RequestMessage } = createRootFromQuery(
+    query,
+    schema
   );
-  const s = buildSchema(readFixtureSync("benchmark/benchmark-schema.graphql"));
+  expect(r.toJSON()).toEqual(root.toJSON());
+  expect(ResponseMessage.toJSON()).toEqual(
+    root.lookupType('graphql.Response').toJSON()
+  );
+  expect(RequestMessage.toJSON()).toEqual(
+    root.lookupType('graphql.Request').toJSON()
+  );
+});
 
-  const { namespace } = createRootWithQueries([q], s);
-  let data: string;
-  converter(namespace, {}, (error: any, d: any) => {
-    data = d;
+it('constructs the correct protobuf benchmark big example', () => {
+  const q = readFixtureSync(
+    'benchmark/big/benchmark-query-nofragments.graphql'
+  );
+  const s = buildSchema(readFixtureSync('benchmark/benchmark-schema.graphql'));
+
+  const { root } = createRootFromQuery(q, s);
+  converter(root, {}, (error: any, data: any) => {
     expect(data).toMatchInlineSnapshot(`
 "syntax = \\"proto3\\";
 
@@ -186,16 +181,14 @@ message Response {
 `);
   });
 });
-it("constructs the correct protobuf benchmark small example", () => {
+it('constructs the correct protobuf benchmark small example', () => {
   const q = readFixtureSync(
-    "benchmark/small/benchmark-query-nofragments.graphql"
+    'benchmark/small/benchmark-query-nofragments.graphql'
   );
-  const s = buildSchema(readFixtureSync("benchmark/benchmark-schema.graphql"));
+  const s = buildSchema(readFixtureSync('benchmark/benchmark-schema.graphql'));
 
-  const { namespace } = createRootWithQueries([q], s);
-  let data: string;
-  converter(namespace, {}, (error: any, d: any) => {
-    data = d;
+  const { root } = createRootFromQuery(q, s);
+  converter(root, {}, (error: any, data: any) => {
     expect(data).toMatchInlineSnapshot(`
 "syntax = \\"proto3\\";
 
@@ -306,33 +299,30 @@ message Response {
   });
 });
 
-it("serializes the data", () => {
-  const { namespace: ns, root: actualRoot } = createRoot();
-  addReqMsgToNamespace(ns);
-  addQueryResMsgToNamespace(query, schema, ns);
-  var ResponseMessage = actualRoot.lookupType("graphql.Response");
+it('serializes the ResponseMessage', () => {
+  const { ResponseMessage } = createRootFromQuery(query, schema);
   const payload = {
     data: {
       both: {
-        string: "foo",
-        number: 42
+        string: 'foo',
+        number: 42,
       },
       test: null,
       x: null,
       testReq: {
-        string: "req string"
+        string: 'req string',
       },
       testb: {
         test: {
-          string: "foo"
-        }
+          string: 'foo',
+        },
       },
       testc: [
         {
-          test: ["a", "b", "c"]
-        }
-      ]
-    }
+          test: ['a', 'b', 'c'],
+        },
+      ],
+    },
   };
 
   // Verify the payload if necessary (i.e. when possibly incomplete or invalid)
@@ -360,61 +350,63 @@ it("serializes the data", () => {
   expect(response.toJSON().data.x).toBeUndefined();
 });
 
-it("full round trip", () => {
-  const { namespace: ns, root: actualRoot } = createRoot();
-  addReqMsgToNamespace(ns);
-  addQueryResMsgToNamespace(query, schema, ns);
-  var ResponseMessage = actualRoot.lookupType("graphql.Response");
-  var RequestMessage = actualRoot.lookupType("graphql.Request");
+it('full round trip', () => {
+  const {
+    RequestMessage: ReqMsgClient,
+    ResponseMessage: ResMsgClient,
+  } = createRootFromQuery(query, schema);
   const req = {
-    query
+    query,
   };
   // Verify the payload if necessary (i.e. when possibly incomplete or invalid)
-  let errMsg = RequestMessage.verify(req);
+  let errMsg = ReqMsgClient.verify(req);
   if (errMsg) throw Error(errMsg);
 
   // Create a new message
-  const reqMsg = RequestMessage.create(req); // or use .fromObject if conversion is necessary
+  const reqMsg = ReqMsgClient.create(req); // or use .fromObject if conversion is necessary
 
   // Encode a message to an Uint8Array (browser) or Buffer (node)
-  const bufferReq = RequestMessage.encode(reqMsg).finish();
-  writeFileSync("./fixtures/reqbuffer", bufferReq);
+  const bufferReq = ReqMsgClient.encode(reqMsg).finish();
+  writeFileSync('./fixtures/reqbuffer', bufferReq);
   // send over the wire
 
   //gqlServer
-  const reqJSON = RequestMessage.decode(bufferReq).toJSON();
+  const {
+    query: queryFromBuff,
+    ResponseMessage: ResMsgServer,
+  } = createRootFromBody(bufferReq, schema);
   const res = cloneDeepWith(
-    execute(schema, parse(reqJSON.query), {
+    execute(schema, parse(queryFromBuff), {
       test: {
-        string: "foo",
-        number: 42
+        string: 'foo',
+        number: 42,
       },
       testReq: {
-        string: "req string"
+        string: 'req string',
       },
       testb: {
         test: {
-          string: "foo"
-        }
+          string: 'foo',
+        },
       },
       testc: [
         {
-          test: ["a", "b", "c"]
-        }
-      ]
+          test: ['a', 'b', 'c'],
+        },
+      ],
     })
   );
 
-  errMsg = ResponseMessage.verify(res);
+  errMsg = ResMsgServer.verify(res);
   if (errMsg) {
     console.error(res);
     throw Error(errMsg);
   }
 
-  const resMsg = ResponseMessage.create(res);
-  const bufferRes = ResponseMessage.encode(resMsg).finish();
+  const resMsg = ResMsgServer.create(res);
+  const bufferRes = ResMsgServer.encode(resMsg).finish();
 
-  const resJSON = ResponseMessage.decode(bufferRes).toJSON();
+  const resJSON = ResMsgClient.decode(bufferRes).toJSON();
   expect(JSON.stringify(resJSON, null, 2)).toMatchInlineSnapshot(`
 "{
   \\"data\\": {

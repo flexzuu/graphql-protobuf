@@ -15,51 +15,48 @@ import {
   isListType,
   isWrappingType,
 } from 'graphql';
-import { ReadonlyArray } from '../readOnlyArray';
 import { last } from 'lodash';
 
-function getScalarTypeName(name: string) {
-  switch (name) {
-    case 'String':
-      return 'string';
-    case 'Int':
-      return 'int32';
-    case 'Float':
-      return 'float';
-    case "ID": 
-      return "string";
-    case "Boolean": 
-      return "bool";
-    case "DateTime":
-      return "string"
-    default:
-      throw new Error('unsuported type ' + name);
-  }
+export function createRootFromQuery(
+  query: string,
+  schema: GraphQLSchema
+) {
+  const { namespace, root } = createRoot("graphql");
+  addReqMsgToNamespace(namespace);
+  var RequestMessage = root.lookupType('graphql.Request');
+  addQueryResMsgToNamespace(query, schema, namespace);
+  var ResponseMessage = root.lookupType('graphql.Response');
+  return { root, ResponseMessage, RequestMessage };
 }
 
-export function createRoot(pkgName: string = 'graphql') {
+export function createRootFromBody(
+  body: any,
+  schema: GraphQLSchema
+) {
+  const { namespace, root } = createRoot("graphql");
+  addReqMsgToNamespace(namespace);
+  var RequestMessage = root.lookupType('graphql.Request');
+  const reqJSON = RequestMessage.decode(body).toJSON();
+  const query = reqJSON.query;
+  addQueryResMsgToNamespace(query, schema, namespace);
+  var ResponseMessage = root.lookupType('graphql.Response');
+  return { root, ResponseMessage, RequestMessage,query };
+}
+
+function createRoot(pkgName: string = 'graphql') {
   const root = new Root();
   return { namespace: root.define(pkgName), root };
 }
-export function createRootWithQueries(
-  queries: string[],
-  schema: GraphQLSchema
-) {
-  const { namespace, root } = createRoot();
-  addReqMsgToNamespace(namespace);
-  for (const query of queries) {
-    addQueryResMsgToNamespace(query, schema, namespace);
-  }
-  return { namespace, root };
-}
-export function addReqMsgToNamespace(ns: Namespace) {
+
+
+function addReqMsgToNamespace(ns: Namespace) {
   //add Request Type
   const req = new Type('Request');
   req.add(new Field('query', 1, 'string'));
   ns.add(req);
 }
 
-export function addQueryResMsgToNamespace(
+function addQueryResMsgToNamespace(
   query: string,
   schema: GraphQLSchema,
   ns: Namespace
@@ -68,7 +65,7 @@ export function addQueryResMsgToNamespace(
   return addDocumentNodeResMsgToNamespace(ast, schema, ns);
 }
 
-export function addDocumentNodeResMsgToNamespace(
+function addDocumentNodeResMsgToNamespace(
   ast: DocumentNode,
   schema: GraphQLSchema,
   ns: Namespace
@@ -142,5 +139,24 @@ function isListTypeDeep(t: GraphQLType) {
       unwrappedType = unwrappedType.ofType;
     }
     return isListType(unwrappedType);
+  }
+}
+
+function getScalarTypeName(name: string) {
+  switch (name) {
+    case 'String':
+      return 'string';
+    case 'Int':
+      return 'int32';
+    case 'Float':
+      return 'float';
+    case "ID": 
+      return "string";
+    case "Boolean": 
+      return "bool";
+    case "DateTime":
+      return "string"
+    default:
+      throw new Error('unsuported type ' + name);
   }
 }
