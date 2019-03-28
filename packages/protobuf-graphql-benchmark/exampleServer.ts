@@ -2,12 +2,10 @@ import express from 'express';
 import compression from 'compression';
 import bodyParser from 'body-parser';
 
-import {
-  createRootFromQuery
-} from '../protobuf-graphql-encoding/index';
+import { createRootFromQuery } from '../protobuf-graphql-encoding/index';
 import { buildSchema } from 'graphql';
 import { readFileSync } from 'fs';
-const converter = require("protobufjs/cli/targets/proto3.js")
+const converter = require('protobufjs/cli/targets/proto3.js');
 const app = express();
 const schema = buildSchema(
   readFileSync('./fixtures/benchmark/benchmark-schema.graphql', {
@@ -42,28 +40,28 @@ app.use(
   })
 );
 app.all('/:queryName', function(req, res, next) {
-  const queryName = req.params.queryName
-  let query: string
-  let benchmarkResponse: object
+  const queryName = req.params.queryName;
+  let query: string;
+  let benchmarkResponse: object;
   switch (queryName) {
     case 'bigQuery':
-      query = queryBig
-      benchmarkResponse = benchmarkResponseBig
+      query = queryBig;
+      benchmarkResponse = benchmarkResponseBig;
       break;
-  
+
     case 'smallQuery':
-      query = querySmall
-      benchmarkResponse = benchmarkResponseSmall
+      query = querySmall;
+      benchmarkResponse = benchmarkResponseSmall;
       break;
-  
+
     default:
-    query=""
-    benchmarkResponse = {}
+      query = '';
+      benchmarkResponse = {};
       break;
   }
   if (req.headers['content-type'] === 'application/gqlproto') {
     const { root, ResponseMessage } = createRootFromQuery(query, schema);
-    converter(root,{}, (error:any , data:any) => console.log(data))
+    converter(root, {}, (error: any, data: any) => console.log(data));
 
     const errMsg = ResponseMessage.verify(benchmarkResponse);
     if (errMsg) throw Error(errMsg);

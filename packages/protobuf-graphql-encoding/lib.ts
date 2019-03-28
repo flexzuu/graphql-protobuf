@@ -9,7 +9,6 @@ import {
   Visitor,
   ASTKindToNode,
   isScalarType,
-  DocumentNode,
   getNamedType,
   GraphQLType,
   isListType,
@@ -17,11 +16,8 @@ import {
 } from 'graphql';
 import { last } from 'lodash';
 
-export function createRootFromQuery(
-  query: string,
-  schema: GraphQLSchema
-) {
-  const { namespace, root } = createRoot("graphql");
+export function createRootFromQuery(query: string, schema: GraphQLSchema) {
+  const { namespace, root } = createRoot('graphql');
   addSimpleReqMsgToNamespace(namespace);
   var RequestMessage = root.lookupType('graphql.Request');
   addQueryResMsgToNamespace(query, schema, namespace);
@@ -29,25 +25,21 @@ export function createRootFromQuery(
   return { root, ResponseMessage, RequestMessage };
 }
 
-export function createRootFromBody(
-  body: any,
-  schema: GraphQLSchema
-) {
-  const { namespace, root } = createRoot("graphql");
+export function createRootFromBody(body: any, schema: GraphQLSchema) {
+  const { namespace, root } = createRoot('graphql');
   addSimpleReqMsgToNamespace(namespace);
   var RequestMessage = root.lookupType('graphql.Request');
   const reqJSON = RequestMessage.decode(body).toJSON();
   const query = reqJSON.query;
   addQueryResMsgToNamespace(query, schema, namespace);
   var ResponseMessage = root.lookupType('graphql.Response');
-  return { root, ResponseMessage, RequestMessage,query };
+  return { root, ResponseMessage, RequestMessage, query };
 }
 
 function createRoot(pkgName: string = 'graphql') {
   const root = new Root();
   return { namespace: root.define(pkgName), root };
 }
-
 
 function addSimpleReqMsgToNamespace(ns: Namespace) {
   //add Request Type
@@ -65,7 +57,7 @@ function addQueryResMsgToNamespace(
   const typeInfo = new TypeInfo(schema);
   let ancestors: Type[] = [];
   const visitor: Visitor<ASTKindToNode> = {
-    [Kind.OPERATION_DEFINITION]: (node) => {
+    [Kind.OPERATION_DEFINITION]: node => {
       const ResponseQueryType = new Type(`Response`).add(
         new Field('data', 1, 'Data')
       );
@@ -77,40 +69,38 @@ function addQueryResMsgToNamespace(
     [Kind.FIELD]: {
       enter(node) {
         const parent = last(ancestors)!;
-          const fieldName = (node.alias && node.alias.value) || node.name.value;
-          const fieldType = typeInfo.getType()
-          if (!fieldType){
-            throw new Error("No field type")
-          }
-          let typeName;
-          if (isNamedScalarType(fieldType)) {
-            typeName = getScalarTypeName(
-              getNamedType(fieldType).toString()
-            );
-          } else {
-            typeName = `Field_${fieldName}`;
-          }
-          parent.add(
-                new Field(
-                  fieldName,
-                  Object.keys(parent.fields).length + 1,
-                  typeName,
-                  isListTypeDeep(fieldType) ? "repeated": undefined,
-                )
-              );
-          if (!isNamedScalarType(fieldType)) {
-              const FieldType = new Type(typeName);
-              parent.add(FieldType)
-              ancestors.push(FieldType)
-            }
+        const fieldName = (node.alias && node.alias.value) || node.name.value;
+        const fieldType = typeInfo.getType();
+        if (!fieldType) {
+          throw new Error('No field type');
+        }
+        let typeName;
+        if (isNamedScalarType(fieldType)) {
+          typeName = getScalarTypeName(getNamedType(fieldType).toString());
+        } else {
+          typeName = `Field_${fieldName}`;
+        }
+        parent.add(
+          new Field(
+            fieldName,
+            Object.keys(parent.fields).length + 1,
+            typeName,
+            isListTypeDeep(fieldType) ? 'repeated' : undefined
+          )
+        );
+        if (!isNamedScalarType(fieldType)) {
+          const FieldType = new Type(typeName);
+          parent.add(FieldType);
+          ancestors.push(FieldType);
+        }
       },
       leave(node) {
-        const fieldType = typeInfo.getType()
-        if (!fieldType){
-          throw new Error("No field type")
+        const fieldType = typeInfo.getType();
+        if (!fieldType) {
+          throw new Error('No field type');
         }
         if (!isNamedScalarType(fieldType)) {
-          ancestors.pop()
+          ancestors.pop();
         }
       },
     },
@@ -118,16 +108,18 @@ function addQueryResMsgToNamespace(
   visit(ast, visitWithTypeInfo(typeInfo, visitor));
 }
 
-function isNamedScalarType(t: GraphQLType){
-  return isScalarType(getNamedType(t))
+function isNamedScalarType(t: GraphQLType) {
+  return isScalarType(getNamedType(t));
 }
 
 function isListTypeDeep(t: GraphQLType) {
   /* eslint-enable no-redeclare */
   if (t) {
     let unwrappedType = t;
-    while (isWrappingType(unwrappedType) && !isListType(unwrappedType) as boolean) {
-
+    while (
+      isWrappingType(unwrappedType) &&
+      (!isListType(unwrappedType) as boolean)
+    ) {
       unwrappedType = unwrappedType.ofType;
     }
     return isListType(unwrappedType);
@@ -142,12 +134,12 @@ function getScalarTypeName(name: string) {
       return 'int32';
     case 'Float':
       return 'float';
-    case "ID": 
-      return "string";
-    case "Boolean": 
-      return "bool";
-    case "DateTime":
-      return "string"
+    case 'ID':
+      return 'string';
+    case 'Boolean':
+      return 'bool';
+    case 'DateTime':
+      return 'string';
     default:
       throw new Error('unsuported type ' + name);
   }

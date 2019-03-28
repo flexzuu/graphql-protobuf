@@ -54,7 +54,6 @@ it('benchmark encoding works (small)', async done => {
   const benchmarkQuery = readFixtureSync(
     'benchmark/small/benchmark-query-nofragments.graphql'
   );
-
   const benchmarkResponse = JSON.parse(
     readFixtureSync('benchmark/small/benchmark-response.json')
   );

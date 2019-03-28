@@ -1,8 +1,6 @@
-import { DocumentNode, GraphQLSchema, print } from 'graphql';
+import { GraphQLSchema } from 'graphql';
 import fetch, { RequestInit } from 'node-fetch';
-import {
-  createRootFromQuery
-} from '../protobuf-graphql-encoding';
+import { createRootFromQuery } from '../protobuf-graphql-encoding';
 interface ResponseWrapper<T> {
   errors: [];
   data: T;
@@ -22,7 +20,10 @@ export class Client {
     this.schema = schema;
   }
   public async query<T>(q: string): Promise<ResponseWrapper<T>> {
-    const { RequestMessage, ResponseMessage } = createRootFromQuery(q, this.schema);
+    const { RequestMessage, ResponseMessage } = createRootFromQuery(
+      q,
+      this.schema
+    );
     const req = {
       query: q,
     };
