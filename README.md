@@ -36,6 +36,7 @@ It was designed for the following usecase:
 ```
 ## Benchmark Small Query
 ```
+❯ yarn install
 ❯ yarn benchmark
 ❯ curl -X GET \
     http://localhost:3002/smallQuery \
