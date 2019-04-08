@@ -45,3 +45,49 @@ It was designed for the following usecase:
     -H 'Content-Type: application/gqlproto' > ./benchmark/small/gqlproto
 ❯ gzip --keep ./benchmark/small/gqlproto ./benchmark/small/json
 ```
+
+```
+├── README.md
+├── benchmark
+│   ├── big
+│   │   ├── gqlproto
+│   │   ├── gqlproto.gz
+│   │   ├── json
+│   │   └── json.gz
+│   ├── filesize.csv
+│   └── small
+│       ├── gqlproto
+│       ├── gqlproto.gz
+│       ├── json
+│       └── json.gz
+├── fixtures
+│   ├── benchmark
+│   │   ├── benchmark-instrospectionSchema.json
+│   │   ├── benchmark-schema.graphql
+│   │   ├── big
+│   │   └── small
+│   ├── reqbuffer
+│   ├── schemaSDL.graphql
+│   ├── testQuery.graphql
+│   └── testQuery.proto
+├── jest.config.js
+├── package.json
+├── packages
+│   ├── protobuf-graphql-benchmark
+│   │   └── exampleServer.ts
+│   ├── protobuf-graphql-client
+│   │   ├── index.ts
+│   │   ├── lib.test.ts
+│   │   └── lib.ts
+│   ├── protobuf-graphql-encoding
+│   │   ├── index.ts
+│   │   ├── lib.test.ts
+│   │   └── lib.ts
+│   ├── protobuf-graphql-express
+│   │   └── exampleServer.ts
+│   └── testUtils
+│       ├── fs.ts
+│       └── index.ts
+├── tsconfig.json
+└── yarn.lock
+```
